@@ -8,12 +8,16 @@ sc = p.display.set_mode((Width, Height))
 
 
 class Sequin:
-	def __init__(self, surf, diff):
+	def __init__(self, surf, diff, theme):
 		self.surface = surf
 		self.x = r(0,Width)
 		self.y = 0
-		self.v = r(diff//3 + 1, diff//3 + 4)
-		self.color = (r(0,200), r(0,200), r(0,200))
+		self.v = r(diff//3 + 1, diff//2 + 2)
+		if theme == "чб":
+			c = r(40, 100)
+			self.color = (c, c, c)
+		elif theme == "синий":
+			self.color = (r(0,150), r(0,150), r(0,150))
 
 	def draw(self):
 		self.y += self.v
@@ -22,9 +26,15 @@ class Sequin:
 
 
 class Enemy:
-	def __init__(self, surf, diff):
-		self.color = (0,r(180,240),r(140,180))
+	def __init__(self, surf, diff, theme):
 		self.hp = self.depth = r(16, 24)
+		if theme == "синий":
+			self.color = (0, self.depth * 5, 400 - self.depth * 10)
+			self.hpColor = RED
+		elif theme == "чб":
+			c = self.depth * 10
+			self.color = (c, c, c)
+			self.hpColor = (200, 200, 200)
 		self.v = r(3 - self.depth//8 + diff//2, 4 - self.depth//8 + diff//2)
 		self.y = -self.depth
 		self.x = r(10, Width - 10)
@@ -39,17 +49,20 @@ class Enemy:
 		form = [(self.x-self.depth, self.y+self.depth), (self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
 		hpForm = [(self.x-self.hp, self.y+self.depth+3), (self.x+self.hp, self.y+self.depth+3), (self.x+self.hp, self.y+self.depth+2), (self.x-self.hp, self.y+self.depth+2)]
 		p.draw.polygon(self.surface, self.color, form)
-		p.draw.polygon(self.surface, RED, hpForm)
+		p.draw.polygon(self.surface, self.hpColor, hpForm)
 		if self.bonus == True:
 			bForm = [(self.x-2, self.y+2), (self.x+2, self.y+2), (self.x+2, self.y-2), (self.x-2, self.y-2)]
-			p.draw.polygon(self.surface, RED, bForm)
+			p.draw.polygon(self.surface, self.hpColor, bForm)
 
 
 class Bullet:
-	def __init__(self, x, y, surf, direct, v):
+	def __init__(self, x, y, surf, direct, v, theme):
 		self.x = x
 		self.y = y
-		self.color = (80,120,200)
+		if theme == "синий":
+			self.color = (80,120,200)
+		elif theme == "чб":
+			self.color = (133, 133, 133)
 		self.v = v
 		self.surface = surf
 		self.depth = (12 - self.v)//2
@@ -86,6 +99,7 @@ class Player:
 		self.hp = self.maxHp = 200
 		self.level = 1
 		self.mode = 0
+		self.recharge = 0
 
 	def left(self):
 		self.x -= self.v + self.points // 30
