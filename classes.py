@@ -1,16 +1,15 @@
 import pygame as p
 from random import randint as r
 
-Width = 1200
-Height = 600
 RED = (226,0,0)
-sc = p.display.set_mode((Width, Height))
+font = "pixelFont.otf"
+textColor = (0,0,0)
 
 
 class Sequin:
-	def __init__(self, surf, diff, theme):
+	def __init__(self, surf, diff, theme, Width):
 		self.surface = surf
-		self.x = r(0,Width)
+		self.x = r(0, Width)
 		self.y = 0
 		self.v = r(diff//3 + 1, diff//2 + 2)
 		if theme == "чб":
@@ -26,7 +25,7 @@ class Sequin:
 
 
 class Enemy:
-	def __init__(self, surf, diff, theme):
+	def __init__(self, surf, diff, theme, Width):
 		self.hp = self.depth = r(16, 24)
 		if theme == "синий":
 			self.color = (0, self.depth * 5, 400 - self.depth * 10)
@@ -35,14 +34,15 @@ class Enemy:
 			c = self.depth * 10
 			self.color = (c, c, c)
 			self.hpColor = (200, 200, 200)
-		self.v = r(3 - self.depth//8 + diff//2, 4 - self.depth//8 + diff//2)
-		self.y = -self.depth
-		self.x = r(10, Width - 10)
+		self.v = r(3 - self.depth // 8 + diff // 2, 4 - self.depth // 8 + diff // 2)
 		self.surface = surf
 		if self.depth == 24:
 			self.bonus = True
 		else:
 			self.bonus = False
+		self.depth = self.depth * Width // 1200
+		self.y = -self.depth
+		self.x = r(self.depth * 2, Width - self.depth * 2)
 
 	def draw(self):
 		self.y += self.v
@@ -86,12 +86,17 @@ class Bullet:
 
 
 class Player:
-	def __init__(self,surf):
-		self.depth = 10
-		self.x = Width//2
-		self.y = Height-self.depth*2
-		self.color = (100,255,255)
-		self.v = 6
+	def __init__(self, surf, Width, Height, theme):
+		self.scWidth = Width
+		self.scHeight = Height
+		self.depth = 10 * Width // 1200
+		self.x = self.scWidth // 2
+		self.y = self.scHeight - self.depth * 2
+		if theme == "синий":
+			self.color = (100,255,255)
+		elif theme == "чб":
+			self.color = (203, 203, 203)
+		self.v = 6 * Width // 1200
 		self.motion = "stop"
 		self.shot = False
 		self.surface = surf
@@ -112,21 +117,21 @@ class Player:
 			self.left()
 		if self.motion == "right":
 			self.right()
-		if self.x > Width:
+		if self.x > self.scWidth:
 			self.x = 0
 		if self.x < 0:
-			self.x = Width
+			self.x = self.scWidth
 
 	def draw(self):
 		self.movement()
-		form = [(self.x,self.y-self.depth),(self.x-self.depth,self.y+self.depth+1),(self.x+self.depth,self.y+self.depth+1)]
-		hpForm = [(0,0),(0,5),(Width*self.hp//self.maxHp,5),(Width*self.hp//self.maxHp,0)]
+		form = [(self.x, self.y-self.depth), (self.x-self.depth, self.y+self.depth+1), (self.x+self.depth, self.y+self.depth+1)]
+		hpForm = [(0, 0), (0, 5), (self.scWidth*self.hp//self.maxHp, 5), (self.scWidth*self.hp//self.maxHp, 0)]
 		p.draw.polygon(self.surface, self.color, form)
 		p.draw.polygon(self.surface, RED, hpForm)
 
 
 class Button:
-	def __init__(self, x, y, w, h, surf, font, size, color, textColor):
+	def __init__(self, x, y, w, h, surf, size, color):
 		self.pressure = False
 		self.surface = surf
 		self.color = color
@@ -142,4 +147,4 @@ class Button:
 		place = text.get_rect(center=(self.x,self.y))
 		form = [(self.x - self.w, self.y - self.h), (self.x + self.w, self.y - self.h), (self.x + self.w, self.y + self.h), (self.x - self.w, self.y + self.h)]
 		p.draw.polygon(self.surface, self.color, form)
-		sc.blit(text, place)
+		self.surface.blit(text, place)
