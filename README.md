@@ -1,1 +1,1 @@
-мэээээаааааааачтотутписатьто
+Crossplatform scroll shooter :)
