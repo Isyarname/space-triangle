@@ -86,12 +86,14 @@ class Bullet:
 
 
 class Player:
-	def __init__(self, surf, Width, Height, theme):
+	def __init__(self, surf, Width, Height, theme, fsc):
 		self.scWidth = Width
 		self.scHeight = Height
-		self.depth = 10 * Width // 1200
+		self.depth = Width // 120
 		self.x = self.scWidth // 2
 		self.y = self.scHeight - self.depth * 2
+		if fsc:
+			self.y -= 34
 		if theme == "синий":
 			self.color = (100,255,255)
 		elif theme == "чб":

@@ -8,49 +8,56 @@ RED = (226, 0, 0)
 ORANGE = (255, 80, 80)
 buttonColor = (184, 105, 208)
 fileName = "data.json"
+font = "pixelFont.otf"
+keys = {"K_a":"a", "K_b":"b", "K_c":"c", "K_d": "d", "K_e":"e", "K_f":"f", "K_g":"g",
+ "K_h":"h", "K_i":"i", "K_j":"j", "K_k":"k", "K_l":"l", "K_m":"m", "K_n":"n", "K_o":"o", "K_p":"p", 
+ "K_q":"q", "K_r":"r", "K_s":"s", "K_t":"t", "K_u":"u", "K_v":"v", "K_w":"w", "K_x":"x", "K_y":"y", "K_z":"z"}
 
 bullets = []
 enemies = []
 sequins = []
+hsTable = False
 turn = 0
 gradation = "+" #изменение цвета фона
 shade = 0
 themes = ["синий", "чб"]
 t = 0 #номер темы
 fsc = False #полный экран
+monitors = get_monitors()
+while monitors == []:
+	monitors = get_monitors()
 
 clock = p.time.Clock()
 p.init()
 
 def start(theme, fsc):
 	if fsc:
-		m = get_monitors()
-		while m == []:
-			m = get_monitors()
-		Width = m[0].width
-		Height = m[0].height
+		Width = monitors[0].width
+		Height = monitors[0].height
+		print(Height)
 		sc = p.display.set_mode((Width, Height), p.FULLSCREEN)
 	else:
 		Width = 1200
 		Height = 600
 		sc = p.display.set_mode((Width, Height))
-	pl = Player(sc, Width, Height, theme)
+	pl = Player(sc, Width, Height, theme, fsc)
 	if theme == "синий":
-		stButton = Button(Width//2, Height*45//100, Width//11, Height//15, sc, 60, buttonColor) #play
-		pButton = Button(Width//25, Height//20, Width//48, Height//40, sc, 30, buttonColor) #points
-		eButton = Button(Width//2, Height//2, Width//11, Height//12, sc, 80, ORANGE) #конец
-		tButton = Button(Width//2, Height*65//100, Width//15, Height//20, sc, 50, buttonColor) #themes
-		hsButton = Button(Width//10, Height//18, Width//12, Height//30, sc, 30, buttonColor) #highscore (рекорд)
-		fscButton = Button(Width//2, Height*85//100, Width//11, Height//20, sc, 30, buttonColor)
+		stButton = Button(Width//2, Height*45//100, Width//11, Height//15, sc, Width//25, buttonColor) #play
+		pButton = Button(Width//25, Height//20, Width//48, Height//40, sc, Width//50, buttonColor) #points
+		eButton = Button(Width//2, Height//2, Width//11, Height//12, sc, Width//15, ORANGE) #конец
+		tButton = Button(Width//2, Height*65//100, Width//15, Height//20, sc, Width//24, buttonColor) #themes
+		hsButton = Button(Width//10, Height//18, Width//12, Height//30, sc, Width//50, buttonColor) #highscore (рекорд)
+		fscButton = Button(Width//2, Height*85//100, Width//11, Height//20, sc, Width//50, buttonColor)
 	elif theme == "чб":
-		stButton = Button(Width//2, Height*45//100, Width//11, Height//15, sc, 60, (165, 165, 165)) #play
-		pButton = Button(Width//25, Height//20, Width//48, Height//40, sc, 30, (165, 165, 165)) #points
-		eButton = Button(Width//2, Height//2, Width//11, Height//12, sc, 80, (140, 140, 140),) #конец
-		tButton = Button(Width//2, Height*65//100, Width//15, Height//20, sc, 50, (165, 165, 165)) #themes
-		hsButton = Button(Width//10, Height//18, Width//12, Height//30, sc, 30, (165, 165, 165)) #highscore (рекорд)
-		fscButton = Button(Width//2, Height*85//100, Width//11, Height//20, sc, 30, (165, 165, 165))
+		stButton = Button(Width//2, Height*45//100, Width//11, Height//15, sc, Width//25, (165, 165, 165)) #play
+		pButton = Button(Width//25, Height//20, Width//48, Height//40, sc, Width//50, (165, 165, 165)) #points
+		eButton = Button(Width//2, Height//2, Width//11, Height//12, sc, Width//15, (140, 140, 140),) #конец
+		tButton = Button(Width//2, Height*65//100, Width//15, Height//20, sc, Width//24, (165, 165, 165)) #themes
+		hsButton = Button(Width//10, Height//18, Width//12, Height//30, sc, Width//50, (165, 165, 165)) #highscore (рекорд)
+		fscButton = Button(Width//2, Height*85//100, Width//11, Height//20, sc, Width//50, (165, 165, 165))
+	hsTableButton = Button(Width//10, Height//7, Width//12, Height//30, sc, Width//50, (7,88,139))
 
-	return sc, pl, Width, Height, stButton, pButton, eButton, tButton, hsButton, fscButton
+	return sc, pl, Width, Height, stButton, pButton, eButton, tButton, hsButton, fscButton, hsTableButton
 
 def themeSel(themes, t):
 	t += 1
@@ -116,10 +123,10 @@ def play(turn, theme):
 				if collision(e, b):
 					e.hp -= b.depth * 2
 					bullets.pop(j)
-			if collision(e, pl):										#player.hp
+			if collision(e, pl):								#player.hp
 				pl.hp -= e.depth
 				enemies.pop(i)
-			elif e.hp <= 0:												#points
+			elif e.hp <= 0:										#points
 				enemies.pop(i)
 				pl.points += e.depth // 8
 				if e.bonus == True:
@@ -141,11 +148,21 @@ def play(turn, theme):
 
 	return turn
 
-def menu():
+def menu(hsTable):
 	stButton.draw("играть")
 	tButton.draw("тема")
 	hsButton.draw("рекорд "+str(data["highscore"]))
 	fscButton.draw("полный экран")
+	if hsButton.pressure:
+		if hsTable == False:
+			hsTable = True
+		else:
+			hsTable = False
+		hsButton.pressure = False
+	if hsTable == True: 
+		hsTableButton.draw(data["players"][0]["name"]+" "+str(data["players"][0]["points"]))
+
+	return hsTable
 
 def events():
 	for event in p.event.get():
@@ -157,7 +174,7 @@ def events():
 				else:
 					buttons = [pButton]
 			elif stButton.pressure == False:
-				buttons = [stButton, tButton, fscButton]
+				buttons = [stButton, tButton, fscButton, hsButton]
 			for i in buttons:
 				if i.pressure == False:
 					pos = event.pos
@@ -232,6 +249,7 @@ eButton = s[6]
 tButton = s[7]
 hsButton = s[8]
 fscButton = s[9]
+hsTableButton = s[10]
 while True:
 	b = background(gradation, shade, themes[t])
 	gradation = b[0]
@@ -245,7 +263,7 @@ while True:
 			if eButton.pressure:
 				stButton.pressure = False
 				eButton.pressure = False
-				pl.__init__(sc)
+				pl.__init__(sc, Width, Height, themes[t])
 				bullets = []
 				enemies = []
 		else:
@@ -253,7 +271,7 @@ while True:
 			if pl.points > data["highscore"]:
 				data["highscore"] = pl.points
 	else:
-		menu()
+		hsTable = menu(hsTable)
 		if tButton.pressure:
 			t = themeSel(themes, t)
 			s = start(themes[t], fsc)
@@ -267,6 +285,7 @@ while True:
 			tButton = s[7]
 			hsButton = s[8]
 			fscButton = s[9]
+			hsTableButton = s[10]
 		elif fscButton.pressure:
 			if fsc == True:
 				fsc = False
@@ -284,6 +303,7 @@ while True:
 			tButton = s[7]
 			hsButton = s[8]
 			fscButton = s[9]
+			hsTableButton = s[10]
 
 	#print(len(enemies) + len(sequins) + len(bullets) + 2)
 	
