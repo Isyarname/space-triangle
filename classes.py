@@ -2,6 +2,7 @@ import pygame as p
 from random import randint as r
 
 RED = (226,0,0)
+ORANGE = (255, 80, 80)
 font = "pixelFont.otf"
 textColor = (0,0,0)
 
@@ -68,25 +69,18 @@ class Bullet:
 		self.depth = (12 - self.v)//2
 		self.lenght = 3
 		self.direction = direct
-
-	def movement(self):
-		if self.direction == "right":
-			self.x += self.v*1//10
-			self.y -= self.v*9//10
-		elif self.direction == "left":
-			self.x -= self.v*1//10
-			self.y -= self.v*9//10
-		else:
-			self.y -= self.v
-
+		
 	def draw(self):
-		self.movement()
+		self.y -= self.v
+		self.x += self.direction
 		form = [(self.x-2,self.y+self.lenght),(self.x+2,self.y+self.lenght),(self.x+2,self.y-self.lenght),(self.x-2,self.y-self.lenght)]
 		p.draw.polygon(self.surface, self.color, form)
 
 
 class Player:
 	def __init__(self, surf, Width, Height, theme, fsc):
+		self.name = "введите имя"
+		self.heal = 0
 		self.scWidth = Width
 		self.scHeight = Height
 		self.depth = Width // 120
@@ -96,13 +90,15 @@ class Player:
 			self.y -= 34
 		if theme == "синий":
 			self.color = (100,255,255)
+			self.hpColor = RED
 		elif theme == "чб":
 			self.color = (203, 203, 203)
+			self.hpColor = (200, 200, 200)
 		self.v = 6 * Width // 1200
 		self.motion = "stop"
 		self.shot = False
 		self.surface = surf
-		self.points = 0
+		self.points = self.highscore = 0
 		self.hp = self.maxHp = 200
 		self.level = 1
 		self.mode = 0
@@ -129,7 +125,7 @@ class Player:
 		form = [(self.x, self.y-self.depth), (self.x-self.depth, self.y+self.depth+1), (self.x+self.depth, self.y+self.depth+1)]
 		hpForm = [(0, 0), (0, 5), (self.scWidth*self.hp//self.maxHp, 5), (self.scWidth*self.hp//self.maxHp, 0)]
 		p.draw.polygon(self.surface, self.color, form)
-		p.draw.polygon(self.surface, RED, hpForm)
+		p.draw.polygon(self.surface, self.hpColor, hpForm)
 
 
 class Button:
@@ -150,3 +146,27 @@ class Button:
 		form = [(self.x - self.w, self.y - self.h), (self.x + self.w, self.y - self.h), (self.x + self.w, self.y + self.h), (self.x - self.w, self.y + self.h)]
 		p.draw.polygon(self.surface, self.color, form)
 		self.surface.blit(text, place)
+
+
+class Bonus:
+	def __init__(self, surf, x, y, theme):
+		self.surface = surf
+		self.x = x
+		self.y = y
+		self.v = 1
+		self.depth = 10
+		if theme == "чб":
+			self.color1 = (138, 138, 138)
+			self.color2 = (76, 76, 76)
+		elif theme == "синий":
+			self.color1 = ORANGE
+			self.color2 = RED
+
+	def draw(self):
+		self.y += self.v
+		d = self.depth // 2
+		form1 = [(self.x-self.depth, self.y+self.depth), (self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
+		form2 = [(self.x-d, self.y+self.depth), (self.x+d, self.y+self.depth), (self.x+d, self.y+d), (self.x+self.depth, self.y+d), (self.x+self.depth, self.y-d),
+		(self.x+d, self.y-d), (self.x+d, self.y-self.depth), (self.x-d, self.y-self.depth), (self.x-d, self.y-d), (self.x-self.depth, self.y-d), (self.x-self.depth, self.y+d), (self.x-d, self.y+d)]
+		p.draw.polygon(self.surface, self.color1, form1)
+		p.draw.polygon(self.surface, self.color2, form2)
