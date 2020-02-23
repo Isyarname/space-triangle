@@ -27,7 +27,7 @@ class Sequin:
 
 class Enemy:
 	def __init__(self, surf, diff, theme, Width):
-		self.hp = self.depth = r(16, 24)
+		self.hp = self.depth = r(16, 25)
 		if theme == "синий":
 			self.color = (0, self.depth * 5, 400 - self.depth * 10)
 			self.hpColor = RED
@@ -37,7 +37,7 @@ class Enemy:
 			self.hpColor = (200, 200, 200)
 		self.v = r(3 - self.depth // 8 + diff // 2, 4 - self.depth // 8 + diff // 2)
 		self.surface = surf
-		if self.depth == 24:
+		if self.depth == 25 and r(0,1) == 1:
 			self.bonus = True
 		else:
 			self.bonus = False
@@ -153,7 +153,7 @@ class Bonus:
 		self.surface = surf
 		self.x = x
 		self.y = y
-		self.v = 1
+		self.v = 2
 		self.depth = 10
 		if theme == "чб":
 			self.color1 = (138, 138, 138)

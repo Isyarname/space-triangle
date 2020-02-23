@@ -227,7 +227,7 @@ def events(hsTable):
 		elif event.type == p.QUIT:
 			quit(fileName)
 		elif event.type == p.KEYDOWN:
-			if addPlButton.pressure:
+			if stButton.pressure == False and addPlButton.pressure:
 				if event.key == p.K_RETURN:
 					addPlButton.pressure = False
 				elif event.key == p.K_BACKSPACE:
