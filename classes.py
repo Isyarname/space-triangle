@@ -35,7 +35,7 @@ class Enemy:
 			c = self.depth * 10
 			self.color = (c, c, c)
 			self.hpColor = (200, 200, 200)
-		self.v = r(3 - self.depth // 8 + diff // 2, 4 - self.depth // 8 + diff // 2)
+		self.v = r(4 - self.depth//8 + diff//3, 4 - self.depth//8 + diff//2)
 		self.surface = surf
 		if self.depth == 25 and r(0,1) == 1:
 			self.bonus = True
@@ -129,19 +129,21 @@ class Player:
 
 
 class Button:
-	def __init__(self, x, y, w, h, surf, size, color):
+	def __init__(self, x, y, surf, size, color):
 		self.pressure = False
 		self.surface = surf
 		self.color = color
 		self.textColor = textColor
-		self.f = p.font.Font(font, size)
+		self.size = size
+		self.f = p.font.Font(font, self.size)
 		self.x = x
 		self.y = y
-		self.h = h
-		self.w = w
+		self.h = size * 10 // 20 + 2
+		self.w = 10
 
 	def draw(self, txt):
 		text = self.f.render(txt, 1, self.textColor)
+		self.w = len(txt) * self.size // 4 + 10
 		place = text.get_rect(center=(self.x,self.y))
 		form = [(self.x - self.w, self.y - self.h), (self.x + self.w, self.y - self.h), (self.x + self.w, self.y + self.h), (self.x - self.w, self.y + self.h)]
 		p.draw.polygon(self.surface, self.color, form)

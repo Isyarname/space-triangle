@@ -35,7 +35,7 @@ p.K_g:"g", p.K_h:"h", p.K_i:"i", p.K_j:"j", p.K_k:"k", p.K_l:"l", p.K_m:"m",
 p.K_n:"n", p.K_o:"o", p.K_p:"p", p.K_q:"q", p.K_r:"r", p.K_s:"s", p.K_t:"t", 
 p.K_u:"u", p.K_v:"v", p.K_w:"w", p.K_x:"x", p.K_y:"y", p.K_z:"z", p.K_0:"0",
 p.K_1:"1", p.K_2:"2", p.K_3:"3", p.K_4: "4", p.K_5:"5", p.K_6:"6", p.K_7:"7",
-p.K_8:"8", p.K_9:"9"}
+p.K_8:"8", p.K_9:"9", p.K_SPACE:" "}
 
 def start(theme, fsc):
 	if fsc:
@@ -56,17 +56,17 @@ def start(theme, fsc):
 		buttonColor1 = (165, 165, 165)
 		buttonColor2 = (140, 140, 140)
 		tableColor = (78, 78, 78)
-	stButton = Button(Width//2, Height*4//10, Width//11, Height//15, sc, Width//25, buttonColor1) #play
-	pButton = Button(Width//19, Height//20, Width//48, Height//40, sc, Width//50, buttonColor1) #points
-	healButton = Button(Width//18, Height//9, Width//20, Height//40, sc, Width//50, buttonColor1)
-	eButton = Button(Width//2, Height//2, Width//11, Height//12, sc, Width//15, buttonColor2) #конец
-	tButton = Button(Width//2, Height*13//20, Width//15, Height//20, sc, Width//24, buttonColor1) #themes
-	hsButton = Button(Width//12, Height//18, Width//15, Height//30, sc, Width//50, buttonColor1) #highscore (рекорд)
-	fscButton = Button(Width//2, Height*17//20, Width//11, Height//20, sc, Width//50, buttonColor1)
-	addPlButton = Button(Width//12, Height//7, Width//15, Height//30, sc, Width//50, buttonColor1)
+	stButton = Button(Width//2, Height*4//10, sc, Width//25, buttonColor1) #play
+	pButton = Button(Width//19, Height//20, sc, Width//50, buttonColor1) #points
+	healButton = Button(Width//18, Height//9, sc, Width//50, buttonColor1)
+	eButton = Button(Width//2, Height//2, sc, Width//15, buttonColor2) #конец
+	tButton = Button(Width//2, Height*13//20, sc, Width//24, buttonColor1) #themes
+	hsButton = Button(Width//12, Height//18, sc, Width//50, buttonColor1) #highscore (рекорд)
+	fscButton = Button(Width//2, Height*17//20, sc, Width//40, buttonColor1)
+	addPlButton = Button(Width//12, Height//7, sc, Width//50, buttonColor1)
 	hsButtons = []
 	for i in range(len(data["players"])):
-		hsButtons.append(Button(Width//10, Height//7 + (i * Height//16), Width//12, Height//32, sc, Width//50, tableColor)) #таблица рекордов
+		hsButtons.append(Button(Width//12, Height//7 + (i * Height//16), sc, Width//50, tableColor)) #таблица рекордов
 
 	return sc, pl, Width, Height, stButton, pButton, eButton, tButton, hsButton, fscButton, hsButtons, addPlButton, healButton
 
@@ -228,15 +228,16 @@ def events(hsTable):
 			quit(fileName)
 		elif event.type == p.KEYDOWN:
 			if stButton.pressure == False and addPlButton.pressure:
-				if event.key == p.K_RETURN:
-					addPlButton.pressure = False
-				elif event.key == p.K_BACKSPACE:
+				if event.key == p.K_BACKSPACE:
 					pl.name = pl.name[:len(pl.name)-1]
-				elif event.key in keys and len(pl.name) < 12:
-					if pl.name == "введите имя":
-						pl.name = keys[event.key]
-					else:
-						pl.name += keys[event.key]
+				elif event.key in keys:
+					if len(pl.name) < 12:
+						if pl.name == "введите имя":
+							pl.name = keys[event.key]
+						else:
+							pl.name += keys[event.key]
+				else:
+					addPlButton.pressure = False
 			elif event.key == p.K_h and pl.heal > 0:
 				pl.hp += 20
 				pl.heal -= 1
