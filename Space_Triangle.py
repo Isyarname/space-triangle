@@ -57,18 +57,19 @@ def start(theme, fsc):
 		buttonColor2 = (140, 140, 140)
 		tableColor = (78, 78, 78)
 	stButton = Button(Width//2, Height*4//10, sc, Width//25, buttonColor1) #play
-	pButton = Button(Width//19, Height//20, sc, Width//50, buttonColor1) #points
-	healButton = Button(Width//18, Height//9, sc, Width//50, buttonColor1)
+	pButton = Button(Width//29, Height//20, sc, Width//50, buttonColor1) #points
 	eButton = Button(Width//2, Height//2, sc, Width//15, buttonColor2) #конец
 	tButton = Button(Width//2, Height*13//20, sc, Width//24, buttonColor1) #themes
-	hsButton = Button(Width//12, Height//18, sc, Width//50, buttonColor1) #highscore (рекорд)
+	hsButton = Button(Width//10, Height//18, sc, Width//50, buttonColor1) #highscore (рекорд)
 	fscButton = Button(Width//2, Height*17//20, sc, Width//40, buttonColor1)
-	addPlButton = Button(Width//12, Height//7, sc, Width//50, buttonColor1)
+	addPlButton = Button(Width//10, Height//7, sc, Width//50, buttonColor1)
 	hsButtons = []
 	for i in range(len(data["players"])):
-		hsButtons.append(Button(Width//12, Height//7 + (i * Height//16), sc, Width//50, tableColor)) #таблица рекордов
+		hsButtons.append(Button(Width//10, Height//7 + (i * Height//16), sc,
+		Width//50, tableColor)) #таблица рекордов
 
-	return sc, pl, Width, Height, stButton, pButton, eButton, tButton, hsButton, fscButton, hsButtons, addPlButton, healButton
+	return (sc, pl, Width, Height, stButton, pButton, eButton, tButton,
+	hsButton,fscButton, hsButtons, addPlButton)
 
 def themeSel(themes, t):
 	t += 1
@@ -134,10 +135,10 @@ def play(turn, theme):
 	if len(bonuses) > 0:
 		for i, b in enumerate(bonuses):
 			if collision(b, pl):
-				pl.heal += 1
+				pl.hp += 20
 				bonuses.pop(i)
-				if pl.heal > 8:
-					pl.heal = 8
+				if pl.hp > pl.maxHp:
+					pl.hp = pl.maxHp
 			else:
 				b.draw()
 
@@ -174,17 +175,19 @@ def play(turn, theme):
 				pl.hp -= e.depth
 			else:
 				e.draw()
-	pButton.draw(str(pl.points))
-	healButton.draw("аптечка "+str(pl.heal))
+	pButton.draw(str(pl.points), Width)
 	pl.draw()
 
 	return turn
 
 def menu(hsTable):
-	stButton.draw("играть")
-	tButton.draw("тема")
-	hsButton.draw("рекорд "+str(data["highscore"]))
-	fscButton.draw("полный экран")
+	stButton.draw("играть", Width)
+	tButton.draw("тема", Width)
+	if hsTable:
+		hsButton.draw("^ рекорд "+str(data["highscore"]), Width)
+	else:
+		hsButton.draw("v рекорд "+str(data["highscore"]), Width)
+	fscButton.draw("полный экран", Width)
 	if hsButton.pressure:
 		if hsTable == False:
 			hsTable = True
@@ -193,12 +196,12 @@ def menu(hsTable):
 		hsButton.pressure = False
 	if hsTable == True:
 		for i, b in enumerate(hsButtons):
-			b.draw(data["players"][i]["name"]+" "+str(data["players"][i]["points"]))
+			b.draw(data["players"][i]["name"]+" "+str(data["players"][i]["points"]), Width)
 			if b.pressure:
 				pl.name = data["players"][i]["name"]
 				pl.highscore = data["players"][i]["points"]
 	else:
-		addPlButton.draw(pl.name+" "+str(pl.highscore))
+		addPlButton.draw(pl.name+" "+str(pl.highscore), Width)
 
 	return hsTable
 
@@ -238,18 +241,13 @@ def events(hsTable):
 							pl.name += keys[event.key]
 				else:
 					addPlButton.pressure = False
-			elif event.key == p.K_h and pl.heal > 0:
-				pl.hp += 20
-				pl.heal -= 1
-				if pl.hp > pl.maxHp:
-					pl.hp = pl.maxHp
 			elif event.key == p.K_ESCAPE:
 				quit(fileName)
 			elif event.key == p.K_LEFT:
 				pl.motion = "left"
 			elif event.key == p.K_RIGHT:
 				pl.motion = "right"
-			elif event.key == p.K_SPACE:
+			elif event.key == p.K_SPACE or event.key == p.K_e:
 				pl.shot = True
 			elif event.key == p.K_o:
 				pl.level = 2
@@ -320,7 +318,6 @@ hsButton = s[8]
 fscButton = s[9]
 hsButtons = s[10]
 addPlButton = s[11]
-healButton = s[12]
 while True:
 	b = background(gradation, shade, themes[t])
 	gradation = b[0]
@@ -336,11 +333,9 @@ while True:
 				eButton.pressure = False
 				ph = pl.highscore
 				pn = pl.name
-				print(pn, ph)
 				pl.__init__(sc, Width, Height, themes[t], fsc)
 				pl.highscore = ph
 				pl.name = pn
-				print(pl.name, pl.highscore)
 				bullets = []
 				enemies = []
 		else:
@@ -368,7 +363,6 @@ while True:
 			fscButton = s[9]
 			hsButtons = s[10]
 			addPlButton = s[11]
-			healButton = s[12]
 		elif fscButton.pressure:
 			if fsc == True:
 				fsc = False
@@ -392,7 +386,6 @@ while True:
 			fscButton = s[9]
 			hsButtons = s[10]
 			addPlButton = s[11]
-			healButton = s[12]
 
 	#print(len(enemies) + len(sequins) + len(bullets) + 2)
 	

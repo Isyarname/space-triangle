@@ -21,7 +21,8 @@ class Sequin:
 
 	def draw(self):
 		self.y += self.v
-		form = [(self.x,self.y),(self.x-1,self.y+1),(self.x+2,self.y-1),(self.x-1,self.y-1),(self.x+1,self.y+1),(self.x,self.y-2)]
+		form = [(self.x,self.y),(self.x-1,self.y+1),(self.x+2,self.y-1),
+		(self.x-1,self.y-1),(self.x+1,self.y+1),(self.x,self.y-2)]
 		p.draw.polygon(self.surface, self.color, form)
 
 
@@ -34,7 +35,7 @@ class Enemy:
 		elif theme == "чб":
 			c = self.depth * 10
 			self.color = (c, c, c)
-			self.hpColor = (200, 200, 200)
+			self.hpColor = (130, 130, 130)
 		self.v = r(4 - self.depth//8 + diff//3, 4 - self.depth//8 + diff//2)
 		self.surface = surf
 		if self.depth == 25 and r(0,1) == 1:
@@ -47,12 +48,17 @@ class Enemy:
 
 	def draw(self):
 		self.y += self.v
-		form = [(self.x-self.depth, self.y+self.depth), (self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
-		hpForm = [(self.x-self.hp, self.y+self.depth+3), (self.x+self.hp, self.y+self.depth+3), (self.x+self.hp, self.y+self.depth+2), (self.x-self.hp, self.y+self.depth+2)]
+		form = [(self.x-self.depth, self.y+self.depth),
+		(self.x+self.depth, self.y+self.depth),
+		(self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
+		hpForm = [(self.x-self.hp, self.y+self.depth+4),
+		(self.x+self.hp, self.y+self.depth+4), (self.x+self.hp, self.y+self.depth+3),
+		(self.x-self.hp, self.y+self.depth+3)]
 		p.draw.polygon(self.surface, self.color, form)
 		p.draw.polygon(self.surface, self.hpColor, hpForm)
 		if self.bonus == True:
-			bForm = [(self.x-2, self.y+2), (self.x+2, self.y+2), (self.x+2, self.y-2), (self.x-2, self.y-2)]
+			bForm = [(self.x-3, self.y+3), (self.x+3, self.y+3),
+			(self.x+3, self.y-3), (self.x-3, self.y-3)]
 			p.draw.polygon(self.surface, self.hpColor, bForm)
 
 
@@ -73,14 +79,14 @@ class Bullet:
 	def draw(self):
 		self.y -= self.v
 		self.x += self.direction
-		form = [(self.x-2,self.y+self.lenght),(self.x+2,self.y+self.lenght),(self.x+2,self.y-self.lenght),(self.x-2,self.y-self.lenght)]
+		form = [(self.x-2,self.y+self.lenght),(self.x+2,self.y+self.lenght),
+		(self.x+2,self.y-self.lenght),(self.x-2,self.y-self.lenght)]
 		p.draw.polygon(self.surface, self.color, form)
 
 
 class Player:
 	def __init__(self, surf, Width, Height, theme, fsc):
 		self.name = "введите имя"
-		self.heal = 0
 		self.scWidth = Width
 		self.scHeight = Height
 		self.depth = Width // 120
@@ -93,7 +99,7 @@ class Player:
 			self.hpColor = RED
 		elif theme == "чб":
 			self.color = (203, 203, 203)
-			self.hpColor = (200, 200, 200)
+			self.hpColor = (130, 130, 130)
 		self.v = 6 * Width // 1200
 		self.motion = "stop"
 		self.shot = False
@@ -122,8 +128,10 @@ class Player:
 
 	def draw(self):
 		self.movement()
-		form = [(self.x, self.y-self.depth), (self.x-self.depth, self.y+self.depth+1), (self.x+self.depth, self.y+self.depth+1)]
-		hpForm = [(0, 0), (0, 5), (self.scWidth*self.hp//self.maxHp, 5), (self.scWidth*self.hp//self.maxHp, 0)]
+		form = [(self.x, self.y-self.depth),
+		(self.x-self.depth, self.y+self.depth+1), (self.x+self.depth, self.y+self.depth+1)]
+		hpForm = [(0, 0), (0, 5), (self.scWidth*self.hp//self.maxHp, 5),
+		(self.scWidth*self.hp//self.maxHp, 0)]
 		p.draw.polygon(self.surface, self.color, form)
 		p.draw.polygon(self.surface, self.hpColor, hpForm)
 
@@ -138,14 +146,19 @@ class Button:
 		self.f = p.font.Font(font, self.size)
 		self.x = x
 		self.y = y
-		self.h = size * 10 // 20 + 2
+		self.h = size * 10 // 19 + 7
 		self.w = 10
 
-	def draw(self, txt):
+	def draw(self, txt, Width):
 		text = self.f.render(txt, 1, self.textColor)
-		self.w = len(txt) * self.size // 4 + 10
+		self.w = len(txt) * self.size // 3 + 10
+		if self.x - self.w < 5:
+			self.x -= (self.x - self.w) - 5
+		elif self.x + self.w > Width - 5:
+			self.x -= (self.x + self.w) - (Width - 5)
 		place = text.get_rect(center=(self.x,self.y))
-		form = [(self.x - self.w, self.y - self.h), (self.x + self.w, self.y - self.h), (self.x + self.w, self.y + self.h), (self.x - self.w, self.y + self.h)]
+		form = [(self.x - self.w, self.y - self.h), (self.x + self.w, self.y - self.h),
+		(self.x + self.w, self.y + self.h), (self.x - self.w, self.y + self.h)]
 		p.draw.polygon(self.surface, self.color, form)
 		self.surface.blit(text, place)
 
@@ -167,8 +180,14 @@ class Bonus:
 	def draw(self):
 		self.y += self.v
 		d = self.depth // 2
-		form1 = [(self.x-self.depth, self.y+self.depth), (self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
-		form2 = [(self.x-d, self.y+self.depth), (self.x+d, self.y+self.depth), (self.x+d, self.y+d), (self.x+self.depth, self.y+d), (self.x+self.depth, self.y-d),
-		(self.x+d, self.y-d), (self.x+d, self.y-self.depth), (self.x-d, self.y-self.depth), (self.x-d, self.y-d), (self.x-self.depth, self.y-d), (self.x-self.depth, self.y+d), (self.x-d, self.y+d)]
+		form1 = [(self.x-self.depth, self.y+self.depth),
+		(self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth),
+		(self.x-self.depth, self.y-self.depth)]
+		form2 = [(self.x-d, self.y+self.depth), (self.x+d, self.y+self.depth),
+		(self.x+d, self.y+d), (self.x+self.depth, self.y+d),
+		(self.x+self.depth, self.y-d),(self.x+d, self.y-d),
+		(self.x+d, self.y-self.depth), (self.x-d, self.y-self.depth),
+		(self.x-d, self.y-d), (self.x-self.depth, self.y-d),
+		(self.x-self.depth, self.y+d), (self.x-d, self.y+d)]
 		p.draw.polygon(self.surface, self.color1, form1)
 		p.draw.polygon(self.surface, self.color2, form2)
