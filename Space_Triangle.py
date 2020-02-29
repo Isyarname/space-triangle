@@ -26,6 +26,7 @@ themes = ["синий", "чб"]
 t = 0 #номер темы
 fsc = False #полный экран
 heal = 0
+time = 0
 monitors = get_monitors()
 while monitors == []:
 	monitors = get_monitors()
@@ -129,24 +130,7 @@ def shooting(theme):
 			else:
 				  bullet.draw()
 
-def play(turn, theme):
-	shooting(theme)
-
-	if len(bonuses) > 0:
-		for i, b in enumerate(bonuses):
-			if collision(b, pl):
-				pl.hp += 20
-				bonuses.pop(i)
-				if pl.hp > pl.maxHp:
-					pl.hp = pl.maxHp
-			else:
-				b.draw()
-
-	turn += 1
-	if turn > r(100,600):
-		enemies.append(Enemy(sc, pl.points//25, theme, Width))
-		turn = 0
-
+def enemyMovement(theme):
 	if len(enemies) > 0:
 		for i, e in enumerate(enemies):
 			for j, b in enumerate(bullets):
@@ -163,18 +147,42 @@ def play(turn, theme):
 				pl.points += e.depth // 8
 				if e.bonus == True:
 					bonuses.append(Bonus(sc, e.x, e.y, theme))
-				if pl.level == 1 and pl.points >= 50:
-					pl.level = 2
-					pl.mode = 1
-					print("level 2")
-				elif pl.level == 2 and pl.points >= 100:
-					pl.level = 3
-					pl.mode = 4
 			elif e.y - e.depth > Height:
 				enemies.pop(i)
 				pl.hp -= e.depth
 			else:
 				e.draw()
+
+def play(turn, theme, time):
+	shooting(theme)
+
+	if len(bonuses) > 0:
+		for i, b in enumerate(bonuses):
+			if collision(b, pl):
+				pl.hp += 20
+				bonuses.pop(i)
+				if pl.hp > pl.maxHp:
+					pl.hp = pl.maxHp
+			else:
+				b.draw()
+
+	turn += 1
+	if pl.level == pl.points//50:
+			pl.level += 1
+			if pl.level == 2:
+				pl.mode = 1
+			elif pl.level == 3:
+				pl.mode = 4
+
+	if time >= 6000:
+		
+	else:
+		if turn > r(100,600):
+			enemies.append(Enemy(sc, pl.points//25, theme, Width))
+			turn = 0
+
+
+	enemyMovement(theme)
 	pButton.draw(str(pl.points), Width)
 	pl.draw()
 
@@ -327,6 +335,7 @@ while True:
 
 	if stButton.pressure:
 		if pl.hp <= 0:
+			time = 0
 			eButton.draw("конец")
 			if eButton.pressure:
 				stButton.pressure = False
@@ -339,7 +348,8 @@ while True:
 				bullets = []
 				enemies = []
 		else:
-			turn = play(turn, themes[t])
+			time += 1
+			turn = play(turn, themes[t], time)
 			if pl.points > pl.highscore:
 				pl.highscore = pl.points
 	else:

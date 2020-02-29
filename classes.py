@@ -191,3 +191,26 @@ class Bonus:
 		(self.x-self.depth, self.y+d), (self.x-d, self.y+d)]
 		p.draw.polygon(self.surface, self.color1, form1)
 		p.draw.polygon(self.surface, self.color2, form2)
+
+
+class Boss:
+	def __init__(self, surf, theme, Width, level):
+		self.hp = level * 100
+		self.color2 = (0,0,0)
+		self.color1 = (255,255,255)
+		self.v = 1
+		self.surface = surf
+		self.depth = Width // 5
+		self.y = -self.depth
+		self.x = Width // 2
+
+	def draw(self):
+		self.y += self.v
+		form = [(self.x-self.depth, self.y+self.depth),
+		(self.x+self.depth, self.y+self.depth),
+		(self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
+		form2 = [(self.x-self.depth-3, self.y+self.depth-3),
+		(self.x+self.depth-3, self.y+self.depth-3),
+		(self.x+self.depth-3, self.y-self.depth-3), (self.x-self.depth-3, self.y-self.depth-3)]
+		p.draw.polygon(self.surface, self.color1, form)
+		p.draw.polygon(self.surface, self.color2, form2)
