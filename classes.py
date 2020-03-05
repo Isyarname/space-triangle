@@ -19,8 +19,9 @@ class Sequin:
 		elif theme == "синий":
 			self.color = (r(0,150), r(0,150), r(0,150))
 
-	def draw(self):
-		self.y += self.v
+	def draw(self, move):
+		if move:
+			self.y += self.v
 		form = [(self.x,self.y),(self.x-1,self.y+1),(self.x+2,self.y-1),
 		(self.x-1,self.y-1),(self.x+1,self.y+1),(self.x,self.y-2)]
 		p.draw.polygon(self.surface, self.color, form)
@@ -46,8 +47,9 @@ class Enemy:
 		self.y = -self.depth
 		self.x = r(self.depth * 2, Width - self.depth * 2)
 
-	def draw(self):
-		self.y += self.v
+	def draw(self, move):
+		if move:
+			self.y += self.v
 		form = [(self.x-self.depth, self.y+self.depth),
 		(self.x+self.depth, self.y+self.depth),
 		(self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
@@ -76,9 +78,10 @@ class Bullet:
 		self.lenght = 3
 		self.direction = direct
 		
-	def draw(self):
-		self.y -= self.v
-		self.x += self.direction
+	def draw(self, move):
+		if move:
+			self.y -= self.v
+			self.x += self.direction
 		form = [(self.x-2,self.y+self.lenght),(self.x+2,self.y+self.lenght),
 		(self.x+2,self.y-self.lenght),(self.x-2,self.y-self.lenght)]
 		p.draw.polygon(self.surface, self.color, form)
@@ -119,15 +122,16 @@ class Player:
 	def movement(self):
 		if self.motion == "left":
 			self.left()
-		if self.motion == "right":
+		elif self.motion == "right":
 			self.right()
 		if self.x > self.scWidth:
 			self.x = 0
-		if self.x < 0:
+		elif self.x < 0:
 			self.x = self.scWidth
 
-	def draw(self):
-		self.movement()
+	def draw(self, move):
+		if move:
+			self.movement()
 		form = [(self.x, self.y-self.depth),
 		(self.x-self.depth, self.y+self.depth+1), (self.x+self.depth, self.y+self.depth+1)]
 		hpForm = [(0, 0), (0, 5), (self.scWidth*self.hp//self.maxHp, 5),
@@ -194,23 +198,32 @@ class Bonus:
 
 
 class Boss:
-	def __init__(self, surf, theme, Width, level):
-		self.hp = level * 100
+	def __init__(self, surf, theme, Width):
 		self.color2 = (0,0,0)
 		self.color1 = (255,255,255)
 		self.v = 1
 		self.surface = surf
-		self.depth = Width // 5
+		self.hp = self.maxHp = 450
+		self.depth = Width // 6
 		self.y = -self.depth
 		self.x = Width // 2
+		if theme == "синий":
+			self.hpColor = RED
+		elif theme == "чб":
+			self.hpColor = (130, 130, 130)
 
-	def draw(self):
-		self.y += self.v
+	def draw(self, move):
+		if move:
+			self.y += self.v
+		h = self.depth * self.hp // self.maxHp
 		form = [(self.x-self.depth, self.y+self.depth),
 		(self.x+self.depth, self.y+self.depth),
 		(self.x+self.depth, self.y-self.depth), (self.x-self.depth, self.y-self.depth)]
-		form2 = [(self.x-self.depth-3, self.y+self.depth-3),
+		form2 = [(self.x-self.depth+3, self.y+self.depth-3),
 		(self.x+self.depth-3, self.y+self.depth-3),
-		(self.x+self.depth-3, self.y-self.depth-3), (self.x-self.depth-3, self.y-self.depth-3)]
+		(self.x+self.depth-3, self.y-self.depth+3), (self.x-self.depth+3, self.y-self.depth+3)]
+		hpForm = [(self.x-h, self.y+self.depth+4), (self.x+h, self.y+self.depth+4),
+		(self.x+h, self.y+self.depth+3), (self.x-h, self.y+self.depth+3)]
+		p.draw.polygon(self.surface, self.hpColor, hpForm)
 		p.draw.polygon(self.surface, self.color1, form)
 		p.draw.polygon(self.surface, self.color2, form2)
