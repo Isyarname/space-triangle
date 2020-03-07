@@ -168,33 +168,51 @@ class Button:
 
 
 class Bonus:
-	def __init__(self, surf, x, y, theme):
+	def __init__(self, surf, x, y, theme, level, points):
 		self.surface = surf
 		self.x = x
 		self.y = y
 		self.v = 2
 		self.depth = 10
-		if theme == "чб":
-			self.color1 = (138, 138, 138)
-			self.color2 = (76, 76, 76)
-		elif theme == "синий":
-			self.color1 = ORANGE
-			self.color2 = RED
+		if (r(0,1) == 1) and (level != points // 50):
+			self.type = 2
+			self.color = (140, 140, 140)
+			self.textColor = textColor
+			size = 20
+			self.w = size // 3 + 3
+			self.h = size * 10 // 19 + 5
+			self.f = p.font.Font(font, size)
+		else:
+			self.type = 1
+			if theme == "чб":
+				self.color1 = (138, 138, 138)
+				self.color2 = (76, 76, 76)
+			elif theme == "синий":
+				self.color1 = ORANGE
+				self.color2 = RED
 
 	def draw(self):
 		self.y += self.v
 		d = self.depth // 2
-		form1 = [(self.x-self.depth, self.y+self.depth),
-		(self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth),
-		(self.x-self.depth, self.y-self.depth)]
-		form2 = [(self.x-d, self.y+self.depth), (self.x+d, self.y+self.depth),
-		(self.x+d, self.y+d), (self.x+self.depth, self.y+d),
-		(self.x+self.depth, self.y-d),(self.x+d, self.y-d),
-		(self.x+d, self.y-self.depth), (self.x-d, self.y-self.depth),
-		(self.x-d, self.y-d), (self.x-self.depth, self.y-d),
-		(self.x-self.depth, self.y+d), (self.x-d, self.y+d)]
-		p.draw.polygon(self.surface, self.color1, form1)
-		p.draw.polygon(self.surface, self.color2, form2)
+		if self.type ==  1:
+			form1 = [(self.x-self.depth, self.y+self.depth),
+			(self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth),
+			(self.x-self.depth, self.y-self.depth)]
+			form2 = [(self.x-d, self.y+self.depth), (self.x+d, self.y+self.depth),
+			(self.x+d, self.y+d), (self.x+self.depth, self.y+d),
+			(self.x+self.depth, self.y-d),(self.x+d, self.y-d),
+			(self.x+d, self.y-self.depth), (self.x-d, self.y-self.depth),
+			(self.x-d, self.y-d), (self.x-self.depth, self.y-d),
+			(self.x-self.depth, self.y+d), (self.x-d, self.y+d)]
+			p.draw.polygon(self.surface, self.color1, form1)
+			p.draw.polygon(self.surface, self.color2, form2)
+		else:
+			text = self.f.render("m", 1, self.textColor)
+			place = text.get_rect(center=(self.x,self.y))
+			form = [(self.x - self.w, self.y - self.h), (self.x + self.w, self.y - self.h),
+			(self.x + self.w, self.y + self.h), (self.x - self.w, self.y + self.h)]
+			p.draw.polygon(self.surface, self.color, form)
+			self.surface.blit(text, place)
 
 
 class Boss:

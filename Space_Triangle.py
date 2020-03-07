@@ -149,7 +149,7 @@ def enemyMovement(theme, move):
 				explosionSound.play()
 				pl.points += e.depth // 8
 				if e.bonus == True:
-					bonuses.append(Bonus(sc, e.x, e.y, theme))
+					bonuses.append(Bonus(sc, e.x, e.y, theme), pl.level, pl.points)
 			elif e.y - e.depth > Height:
 				enemies.pop(i)
 				pl.hp -= e.depth
@@ -164,20 +164,15 @@ def play(turn, theme, time, move):
 	if len(bonuses) > 0:
 		for i, b in enumerate(bonuses):
 			if collision(b, pl):
-				pl.hp += 20
+				if b.type == 1:
+					pl.hp += 20
+					if pl.hp > pl.maxHp:
+						pl.hp = pl.maxHp
+				elif pl.level == pl.points//50:
+					pl.level += 1
 				bonuses.pop(i)
-				if pl.hp > pl.maxHp:
-					pl.hp = pl.maxHp
 			else:
 				b.draw()
-
-	if pl.level == pl.points//50:
-			pl.level += 1
-			if pl.level == 2:
-				pl.mode = 1
-			elif pl.level == 3:
-				pl.mode = 4
-
 	print(time)
 	if time >= 3500 and boss.hp > 0 and boss.y - boss.depth <= Height:
 		for j, b in enumerate(bullets):
@@ -279,6 +274,7 @@ def events(hsTable):
 					if pl.mode > 3:
 						pl.mode = 1
 				elif pl.level == 3:
+					print(pl.mode)
 					if pl.mode > 5:
 						pl.mode = 4
 		elif event.type == p.KEYUP:
