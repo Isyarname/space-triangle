@@ -65,7 +65,8 @@ class Enemy:
 
 
 class Bullet:
-	def __init__(self, x, y, surf, direct, v, theme):
+	def __init__(self, x, y, surf, direct, v, theme, m):
+		self.m = m
 		self.x = x
 		self.y = y
 		if theme == "синий":
@@ -215,7 +216,7 @@ class Bonus:
 			self.surface.blit(text, place)
 
 
-class Boss:
+class Boss1:
 	def __init__(self, surf, theme, Width):
 		self.color2 = (0,0,0)
 		self.color1 = (255,255,255)
@@ -244,4 +245,48 @@ class Boss:
 		(self.x+h, self.y+self.depth+3), (self.x-h, self.y+self.depth+3)]
 		p.draw.polygon(self.surface, self.hpColor, hpForm)
 		p.draw.polygon(self.surface, self.color1, form)
+		p.draw.polygon(self.surface, self.color2, form2)
+
+
+class Boss2:
+	def __init__(self, surf, theme, Width):
+		self.v = 1
+		self.surface = surf
+		self.hp = self.maxHp = 450
+		self.depth = Width // 7
+		self.y = -self.depth
+		self.x = Width // 2
+		self.turn = 0
+		self.theme = theme
+		if theme == "синий":
+			self.hpColor = RED
+			self.color = (20,100,255)
+			self.color2 = (255,83,112)
+		elif theme == "чб":
+			self.hpColor = (130, 130, 130)
+			self.color = (125,125,125)
+			self.color2 = (150,150,150)
+			self.d = self.depth//4
+			self.x1 = self.x - d
+			self.x2 = self.x + d
+			self.y2 = self.y + d
+			self.t = 1
+
+	def shooting(self):
+		self.turn += 1
+		if self.turn == 5:
+			if t == 1:
+				bullets.append(Bullet(self.x1, self.y2, sc, 0, -10, self.theme, 2))
+			elif t == 2:
+				bullets.append(Bullet(self.x2, self.y2, sc, 0, -10, self.theme, 2))
+
+	def draw(self, move):
+		if move:
+			if self.y < 0:
+				self.y += self.v
+		form = [(self.x-self.depth, self.y), (self.x+self.depth, self.y), (self.x, self.y+self.depth)]
+		form1 = [(self.x1-self.d, self.y2), (self.x1+self.d, self.y2), (self.x1, self.y2+self.d)]
+		form2 = [(self.x2-self.d, self.y2), (self.x2+self.d, self.y2), (self.x2, self.y2+self.d)]
+		p.draw.polygon(self.surface, self.color, form)
+		p.draw.polygon(self.surface, self.color2, form1)
 		p.draw.polygon(self.surface, self.color2, form2)

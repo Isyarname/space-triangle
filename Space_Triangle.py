@@ -19,6 +19,7 @@ enemies = []
 sequins = []
 bonuses = []
 hsTable = False
+bossIndex = 0
 turn = 0
 gradation = "+" #изменение цвета фона
 shade = 0
@@ -65,7 +66,7 @@ def start(theme, fsc):
 	hsButton = Button(Width//10, Height//18, sc, Width//50, buttonColor1) #highscore (рекорд)
 	fscButton = Button(Width//2, Height*17//20, sc, Width//40, buttonColor1)
 	addPlButton = Button(Width//10, Height//7, sc, Width//50, buttonColor1)
-	boss = Boss(sc, theme, Width)
+	boss = Boss1(sc, theme, Width)
 	hsButtons = []
 	for i in range(len(data["players"])):
 		hsButtons.append(Button(Width//10, Height//7 + (i * Height//16), sc,
@@ -102,33 +103,33 @@ def shooting(theme, move):
 	if move:
 		if pl.shot == True:
 			if pl.mode == 2:
-				bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme))
+				bullets.append(Bullet(pl.x, pl.y, sc, (0,1), 10, theme, 1))
 			elif pl.mode == 5:
-				bullets.append(Bullet(pl.x, pl.y, sc, -1, 10, theme))
-				bullets.append(Bullet(pl.x, pl.y, sc, 1, 10, theme))
+				bullets.append(Bullet(pl.x, pl.y, sc, (-1, 1), 10, theme, 1))
+				bullets.append(Bullet(pl.x, pl.y, sc, (1,1), 10, theme, 1))
 			else:
 				if pl.recharge == 3:
 					if pl.mode == 0:
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme))
+						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme, 1))
 					elif pl.mode == 1:
-						bullets.append(Bullet(pl.x, pl.y, sc, -1, 10, theme))
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme))
-						bullets.append(Bullet(pl.x, pl.y, sc, 1, 10, theme))
+						bullets.append(Bullet(pl.x, pl.y, sc, -1, 10, theme, 1))
+						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme, 1))
+						bullets.append(Bullet(pl.x, pl.y, sc, 1, 10, theme, 1))
 					elif pl.mode == 3:
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 4, theme))
+						bullets.append(Bullet(pl.x, pl.y, sc, 0, 4, theme, 1))
 					elif pl.mode == 4:
-						bullets.append(Bullet(pl.x, pl.y, sc, -2, 10, theme))
-						bullets.append(Bullet(pl.x, pl.y, sc, -1, 10, theme))
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme))
-						bullets.append(Bullet(pl.x, pl.y, sc, 1, 10, theme))
-						bullets.append(Bullet(pl.x, pl.y, sc, 2, 10, theme))
+						bullets.append(Bullet(pl.x, pl.y, sc, -2, 10, theme, 1))
+						bullets.append(Bullet(pl.x, pl.y, sc, -1, 10, theme, 1))
+						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme, 1))
+						bullets.append(Bullet(pl.x, pl.y, sc, 1, 10, theme, 1))
+						bullets.append(Bullet(pl.x, pl.y, sc, 2, 10, theme, 1))
 					pl.recharge = 0
 				else:
 					pl.recharge += 1
 
 	if len(bullets) > 0:
 		for index, bullet in enumerate(bullets):
-			if bullet.y + bullet.lenght <= 0:
+			if bullet.y + bullet.lenght <= 0 or bullet.y - bullet.lenght > Height:
 				bullets.pop(index)
 			else:
 				  bullet.draw(move)
@@ -137,7 +138,7 @@ def enemyMovement(theme, move):
 	if len(enemies) > 0:
 		for i, e in enumerate(enemies):
 			for j, b in enumerate(bullets):
-				if collision(e, b):
+				if b.m == 1 and collision(e, b):
 					e.hp -= b.depth * 2
 					bullets.pop(j)
 			if collision(e, pl):								#player.hp
@@ -149,14 +150,29 @@ def enemyMovement(theme, move):
 				explosionSound.play()
 				pl.points += e.depth // 8
 				if e.bonus == True:
-					bonuses.append(Bonus(sc, e.x, e.y, theme), pl.level, pl.points)
+					bonuses.append(Bonus(sc, e.x, e.y, theme, pl.level, pl.points))
 			elif e.y - e.depth > Height:
 				enemies.pop(i)
 				pl.hp -= e.depth
 			else:
 				e.draw(move)
 
-def play(turn, theme, time, move):
+def bossMovement(time, move, theme, bossIndex):
+	if boss.hp > 0 and boss.y - boss.depth <= Height:
+		for j, b in enumerate(bullets):
+			if collision(boss, b) and b.m == 1:
+				boss.hp -= b.depth * 2
+				bullets.pop(j)
+			elif collision(pl, b) and b.m == 2:
+				pl.hp -= b.#hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhjg
+		if collision(boss, pl):						#player.hp
+			pl.hp -= boss.hp
+			explosionSound.play()
+
+		boss.draw(move)
+
+
+def play(turn, theme, time, move, bossIndex):
 	if move:
 		turn += 1
 	shooting(theme, move)
@@ -174,20 +190,15 @@ def play(turn, theme, time, move):
 			else:
 				b.draw()
 	print(time)
-	if time >= 3500 and boss.hp > 0 and boss.y - boss.depth <= Height:
-		for j, b in enumerate(bullets):
-			if collision(boss, b):
-				boss.hp -= b.depth * 2
-				bullets.pop(j)
-		if collision(boss, pl):						#player.hp
-			pl.hp -= boss.hp
-			explosionSound.play()
-		boss.draw(move)
 
 	if turn > r(100,600) and move:
 		turn = 0
 		enemies.append(Enemy(sc, pl.points//25, theme, Width))
 
+	if bossIndex < time//3500:
+		bossIndex += 1
+
+	bossMovement(time, move, theme, bossIndex)
 	enemyMovement(theme, move)
 	pButton.draw(str(pl.points), Width)
 	pl.draw(move)
@@ -362,7 +373,7 @@ while True:
 		else:
 			if not pauseButton.pressure:
 				time += 1
-			turn = play(turn, themes[t], time, not pauseButton.pressure)
+			turn = play(turn, themes[t], time, not pauseButton.pressure, bossIndex)
 			if pl.points > pl.highscore:
 				pl.highscore = pl.points
 	else:
