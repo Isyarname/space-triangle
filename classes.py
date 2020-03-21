@@ -92,6 +92,7 @@ class Player:
 	def __init__(self, surf, Width, Height, theme, fsc):
 		self.name = "введите имя"
 		self.scWidth = Width
+		self.time = 0
 		self.scHeight = Height
 		self.depth = Width // 120
 		self.x = self.scWidth // 2
@@ -266,11 +267,11 @@ class Boss2:
 			self.hpColor = (130, 130, 130)
 			self.color = (125,125,125)
 			self.color2 = (150,150,150)
-			self.d = self.depth//4
-			self.x1 = self.x - d
-			self.x2 = self.x + d
-			self.y2 = self.y + d
-			self.t = 1
+		self.d = self.depth//4
+		self.x1 = self.x - self.d
+		self.x2 = self.x + self.d
+		self.y2 = self.y + self.d
+		self.t = 1
 
 	def shooting(self):
 		self.turn += 1
