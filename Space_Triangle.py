@@ -18,7 +18,7 @@ bullets = []
 enemies = []
 sequins = []
 bonuses = []
-hsTable = False
+hsTable = False #открыта ли таблица рекордов
 bossIndex = 0
 turn = 0
 gradation = "+" #изменение цвета фона
@@ -26,10 +26,8 @@ shade = 0
 themes = ["синий", "чб"]
 t = 0 #номер темы
 fsc = False #полный экран
-heal = 0
-time = 0
 monitors = get_monitors()
-while monitors == []:
+while monitors == []: #так надо
 	monitors = get_monitors()
 
 keys = {p.K_a:"a", p.K_b:"b", p.K_c:"c", p.K_d: "d", p.K_e:"e", p.K_f:"f",
@@ -49,7 +47,6 @@ def start(theme, fsc):
 		Width = 900
 		Height = 500
 		sc = p.display.set_mode((Width, Height))
-	pl = Player(sc, Width, Height, theme, fsc)
 	if theme == "синий":
 		buttonColor1 = (184, 105, 208)
 		buttonColor2 = ORANGE
@@ -67,20 +64,39 @@ def start(theme, fsc):
 	fscButton = Button(Width//2, Height*17//20, sc, Width//40, buttonColor1)
 	addPlButton = Button(Width//10, Height//7, sc, Width//50, buttonColor1)
 	boss = Boss1(sc, theme, Width)
+	pl = Player(sc, Width, Height, theme, fsc)
 	hsButtons = []
 	for i in range(len(data["players"])):
-		hsButtons.append(Button(Width//10, Height//7 + (i * Height//16), sc,
-		Width//50, tableColor)) #таблица рекордов
+		hsButtons.append(Button(Width//10, Height//7 + (i * Height//16), sc, Width//50, tableColor)) #таблица рекордов
 
 	return (sc, pl, Width, Height, stButton, pButton, eButton, tButton,
 	hsButton,fscButton, hsButtons, addPlButton, boss, pauseButton)
 
-def themeSel(themes, t):
+def themeSel(themes, t, sc, pl):
 	t += 1
 	tButton.pressure = False
 	if t >= len(themes):
 		t = 0
-	return t
+	if themes[t] == "синий":
+		buttonColor1 = (184, 105, 208)
+		buttonColor2 = ORANGE
+		tableColor = (7,88,139)
+	elif themes[t] == "чб":
+		buttonColor1 = (165, 165, 165)
+		buttonColor2 = (140, 140, 140)
+		tableColor = (78, 78, 78)
+	ph = pl.highscore
+	pn = pl.name
+	pl = Player(sc, Width, Height, themes[t], fsc)
+	pl.highscore = ph
+	pl.name = pn
+	boss = Boss1(sc, themes[t], Width)
+	stButton.color = pButton.color = pauseButton.color = tButton.color = hsButton.color = fscButton.color = addPlButton.color = buttonColor1
+	eButton.color = buttonColor2
+	for i in hsButtons:
+		i.color = tableColor
+
+	return t, pl, boss
 
 def read(fileName):
 	with open(fileName, "r", encoding = "UTF-8") as file:
@@ -358,20 +374,9 @@ def quit(fileName):
 
 data = read(fileName)
 s = start(themes[t], fsc)
-sc = s[0]
-pl = s[1]
-Width = s[2]
-Height = s[3]
-stButton = s[4]
-pButton = s[5]
-eButton = s[6]
-tButton = s[7]
-hsButton = s[8]
-fscButton = s[9]
-hsButtons = s[10]
-addPlButton = s[11]
-boss = s[12]
-pauseButton = s[13]
+sc, pl, Width, Height, stButton, pButton = s[0], s[1], s[2], s[3], s[4], s[5]
+eButton, tButton, hsButton, fscButton = s[6], s[7], s[8], s[9]
+hsButtons, addPlButton, boss, pauseButton = s[10], s[11], s[12], s[13]
 while True:
 	b = background(gradation, shade, themes[t], not pauseButton.pressure)
 	gradation = b[0]
@@ -384,23 +389,13 @@ while True:
 			eButton.draw("конец", Width)
 			if eButton.pressure:
 				stButton.pressure = False
-				eButton.pressure = False
-				ph = pl.highscore
-				pn = pl.name
+				ph, pn = pl.highscore, pl.name
 				s = start(themes[t], fsc)
+				sc, pl, Width, Height, stButton, pButton = s[0], s[1], s[2], s[3], s[4], s[5]
+				eButton, tButton, hsButton, fscButton = s[6], s[7], s[8], s[9]
+				hsButtons, addPlButton, boss, pauseButton = s[10], s[11], s[12], s[13]
+				pl.highscore, pl.name = ph, pn
 				bossIndex = 0
-				pl = s[1]
-				pl.highscore = ph
-				pl.name = pn
-				stButton = s[4]
-				eButton = s[6]
-				tButton = s[7]
-				hsButton = s[8]
-				fscButton = s[9]
-				hsButtons = s[10]
-				addPlButton = s[11]
-				boss = s[12]
-				pauseButton = s[13]
 				bullets = []
 				enemies = []
 		else:
@@ -417,51 +412,17 @@ while True:
 	else:
 		hsTable = menu(hsTable)
 		if tButton.pressure:
-			t = themeSel(themes, t)
-			ph = pl.highscore
-			pn = pl.name
-			s = start(themes[t], fsc)
-			sc = s[0]
-			pl = s[1]
-			pl.highscore = ph
-			pl.name = pn
-			Width = s[2]
-			Height = s[3]
-			stButton = s[4]
-			pButton = s[5]
-			eButton = s[6]
-			tButton = s[7]
-			hsButton = s[8]
-			fscButton = s[9]
-			hsButtons = s[10]
-			addPlButton = s[11]
-			boss = s[12]
-			pauseButton = s[13]
+			ts = themeSel(themes, t, sc, pl)
+			t, pl, boss = ts[0], ts[1], ts[2]
 		elif fscButton.pressure:
-			if fsc == True:
-				fsc = False
-			else:
-				fsc = True
+			fsc = not fsc
 			fscButton.pressure = False
-			ph = pl.highscore
-			pn = pl.name
+			ph, pn = pl.highscore, pl.name
 			s = start(themes[t], fsc)
-			sc = s[0]
-			pl = s[1]
-			pl.highscore = ph
-			pl.name = pn
-			Width = s[2]
-			Height = s[3]
-			stButton = s[4]
-			pButton = s[5]
-			eButton = s[6]
-			tButton = s[7]
-			hsButton = s[8]
-			fscButton = s[9]
-			hsButtons = s[10]
-			addPlButton = s[11]
-			boss = s[12]
-			pauseButton = s[13]
+			sc, pl, Width, Height, stButton, pButton = s[0], s[1], s[2], s[3], s[4], s[5]
+			eButton, tButton, hsButton, fscButton = s[6], s[7], s[8], s[9]
+			hsButtons, addPlButton, boss, pauseButton = s[10], s[11], s[12], s[13]
+			pl.highscore, pl.name = ph, pn
 
 
 	#print(len(enemies) + len(sequins) + len(bullets) + 2)
