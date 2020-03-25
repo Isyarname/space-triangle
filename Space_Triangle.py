@@ -19,7 +19,7 @@ enemies = []
 sequins = []
 bonuses = []
 hsTable = False
-bossIndex = 1
+bossIndex = 0
 turn = 0
 gradation = "+" #изменение цвета фона
 shade = 0
@@ -46,8 +46,8 @@ def start(theme, fsc):
 		print(Height)
 		sc = p.display.set_mode((Width, Height), p.FULLSCREEN)
 	else:
-		Width = 1200
-		Height = 600
+		Width = 900
+		Height = 500
 		sc = p.display.set_mode((Width, Height))
 	pl = Player(sc, Width, Height, theme, fsc)
 	if theme == "синий":
@@ -99,6 +99,15 @@ def collision(object1, object2): #enemy, bullet/player
 	else:
 		return False
 
+def tCollision(obj1, obj2):
+	if (obj1.x - obj1.width <= obj2.x <= obj1.x and 
+		(obj1.y + obj1.height - obj2.y) * (obj1.width / 2) / obj1.height > obj1.x - obj2.x or 
+		obj1.x <= obj2.x <= obj1.x + obj1.width and 
+		(obj1.y + obj1.height - obj2.y) * (obj1.width / 2) / obj1.height > obj2.x - obj1.x):
+		return True
+	else:
+		return False
+
 def shooting(theme, move):
 	if move:
 		if pl.shot == True:
@@ -139,10 +148,10 @@ def enemyMovement(theme, move):
 		for i, e in enumerate(enemies):
 			for j, b in enumerate(bullets):
 				if b.m == 1 and collision(e, b):
-					e.hp -= b.depth * 2
+					e.hp -= b.depth
 					bullets.pop(j)
 			if collision(e, pl):								#player.hp
-				pl.hp -= e.depth
+				pl.hp -= e.depth * 2
 				enemies.pop(i)
 				explosionSound.play()
 			elif e.hp <= 0:										#points
@@ -153,33 +162,43 @@ def enemyMovement(theme, move):
 					bonuses.append(Bonus(sc, e.x, e.y, theme, pl.level, pl.points))
 			elif e.y - e.depth > Height:
 				enemies.pop(i)
-				pl.hp -= e.depth
+				pl.hp -= e.depth * 2
 			else:
 				e.draw(move)
 
 def bossMovement(move, theme, bossIndex):
-	if pl.time >= 3500 * bossIndex:
-		print("bossssssssssssssssss")
-		if boss.hp > 0 and boss.y - boss.depth <= Height:
+	if boss.hp > 0 and bossIndex != 0:
+		if bossIndex == 2 and boss.y - boss.height <= Height:
 			for j, b in enumerate(bullets):
-				if collision(boss, b) and b.m == 1:
-					boss.hp -= b.depth * 2
-					bullets.pop(j)
-				elif collision(pl, b) and b.m == 2:
-					pl.hp -= b.depth
-			if collision(boss, pl):						#player.hp
+				if b.m == 1:
+					if tCollision(boss, b):
+						boss.hp -= b.depth
+						bullets.pop(j)
+				elif collision(pl, b):
+					pl.hp -= b.depth // 2
+			boss.recharge += 1
+			if boss.recharge == 10:
+				t = r(1,2)
+				if t == 1:
+					vx = (pl.x - boss.x1) * 6 // (pl.y - boss.y2)
+					bullets.append(Bullet(boss.x1, boss.y2, sc, vx, -6, theme, 2))
+				elif t == 2:
+					vx = (pl.x - boss.x2) * 6 // (pl.y - boss.y2)
+					bullets.append(Bullet(boss.x2, boss.y2, sc, vx, -6, theme, 2))
+				boss.recharge = 0
+			boss.draw(move)
+		elif bossIndex == 1 and boss.y - boss.depth <= Height:
+			for j, b in enumerate(bullets):
+				if b.m == 1:
+					if collision(boss, b):
+						boss.hp -= b.depth
+						bullets.pop(j)
+			if collision(boss, pl):
 				pl.hp -= boss.hp
 				explosionSound.play()
 			boss.draw(move)
-		else:
-			bossIndex += 1
-	return bossIndex
 
 def play(turn, theme, move, bossIndex):
-	if move:
-		turn += 1
-	shooting(theme, move)
-
 	if len(bonuses) > 0:
 		for i, b in enumerate(bonuses):
 			if collision(b, pl):
@@ -192,22 +211,21 @@ def play(turn, theme, move, bossIndex):
 				bonuses.pop(i)
 			else:
 				b.draw()
-	print(pl.time)
 
 	if turn > r(100,600) and move:
 		turn = 0
 		enemies.append(Enemy(sc, pl.points//25, theme, Width))
 
-	if bossIndex < pl.time // 3500:
-		bossIndex += 1
-
-	bossIndex == bossMovement(move, theme, bossIndex)
+	bossMovement(move, theme, bossIndex)
 	enemyMovement(theme, move)
+	if move:
+		turn += 1
+	shooting(theme, move)
 	pButton.draw(str(pl.points), Width)
 	pl.draw(move)
 	pauseButton.draw("||", Width)
 
-	return turn, bossIndex
+	return turn
 
 def menu(hsTable):
 	stButton.draw("играть", Width)
@@ -283,7 +301,7 @@ def events(hsTable):
 			elif event.key == p.K_o:
 				pl.level = 2
 			elif event.key == p.K_l:
-				pl.time = 3500 * 2
+				pl.time = 6999
 			elif event.key == p.K_m:
 				pl.mode += 1
 				if pl.level == 2:
@@ -369,19 +387,31 @@ while True:
 				eButton.pressure = False
 				ph = pl.highscore
 				pn = pl.name
-				start(themes[t], fsc)
+				s = start(themes[t], fsc)
+				bossIndex = 0
+				pl = s[1]
 				pl.highscore = ph
 				pl.name = pn
+				stButton = s[4]
+				eButton = s[6]
+				tButton = s[7]
+				hsButton = s[8]
+				fscButton = s[9]
+				hsButtons = s[10]
+				addPlButton = s[11]
+				boss = s[12]
+				pauseButton = s[13]
 				bullets = []
 				enemies = []
 		else:
 			if not pauseButton.pressure:
 				pl.time += 1
-			pla = play(turn, themes[t], not pauseButton.pressure, bossIndex)
-			turn = pla[0]
-			bossIndex = pla[1]
-			if bossIndex == 2:
-				boss = Boss2(sc, themes[t], Width)
+			if pl.time % 3500 == 0:
+				bossIndex = pl.time // 3500
+				if bossIndex == 2:
+					print("boss2")
+					boss = Boss2(sc, themes[t], Width)
+			turn = play(turn, themes[t], not pauseButton.pressure, bossIndex)
 			if pl.points > pl.highscore:
 				pl.highscore = pl.points
 	else:

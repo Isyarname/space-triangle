@@ -75,7 +75,7 @@ class Bullet:
 			self.color = (133, 133, 133)
 		self.v = v
 		self.surface = surf
-		self.depth = (12 - self.v)//2
+		self.depth = (12 - self.v)
 		self.lenght = 3
 		self.direction = direct
 		
@@ -110,7 +110,7 @@ class Player:
 		self.shot = False
 		self.surface = surf
 		self.points = self.highscore = 0
-		self.hp = self.maxHp = 200
+		self.hp = self.maxHp = 600
 		self.level = 1
 		self.mode = 0
 		self.recharge = 0
@@ -251,43 +251,38 @@ class Boss1:
 
 class Boss2:
 	def __init__(self, surf, theme, Width):
-		self.v = 1
+		self.v = 2
 		self.surface = surf
-		self.hp = self.maxHp = 450
-		self.depth = Width // 7
-		self.y = -self.depth
+		self.hp = self.maxHp = 1000
+		self.width = Width // 7
+		self.height = self.width // 2
+		self.y = -self.height
 		self.x = Width // 2
-		self.turn = 0
-		self.theme = theme
+		self.recharge = 0
 		if theme == "синий":
 			self.hpColor = RED
-			self.color = (20,100,255)
-			self.color2 = (255,83,112)
+			self.color = (10,80,230)
+			self.color2 = (245,73,102)
 		elif theme == "чб":
 			self.hpColor = (130, 130, 130)
-			self.color = (125,125,125)
-			self.color2 = (150,150,150)
-		self.d = self.depth//4
+			self.color = (110,110,110)
+			self.color2 = (140,140,140)
+		self.d = self.width // 4
 		self.x1 = self.x - self.d
 		self.x2 = self.x + self.d
 		self.y2 = self.y + self.d
-		self.t = 1
-
-	def shooting(self):
-		self.turn += 1
-		if self.turn == 5:
-			if t == 1:
-				bullets.append(Bullet(self.x1, self.y2, sc, 0, -10, self.theme, 2))
-			elif t == 2:
-				bullets.append(Bullet(self.x2, self.y2, sc, 0, -10, self.theme, 2))
 
 	def draw(self, move):
-		if move:
-			if self.y < 0:
-				self.y += self.v
-		form = [(self.x-self.depth, self.y), (self.x+self.depth, self.y), (self.x, self.y+self.depth)]
-		form1 = [(self.x1-self.d, self.y2), (self.x1+self.d, self.y2), (self.x1, self.y2+self.d)]
-		form2 = [(self.x2-self.d, self.y2), (self.x2+self.d, self.y2), (self.x2, self.y2+self.d)]
+		if move and self.y <= self.height:
+			self.y += self.v
+		self.y2 = self.y + self.d
+		form = [(self.x-self.width, self.y-self.height), (self.x+self.width, self.y-self.height), (self.x, self.y+self.height)]
+		form1 = [(self.x1-self.d, self.y2-self.d), (self.x1+self.d, self.y2-self.d), (self.x1, self.y2)]
+		form2 = [(self.x2-self.d, self.y2-self.d), (self.x2+self.d, self.y2-self.d), (self.x2, self.y2)]
 		p.draw.polygon(self.surface, self.color, form)
 		p.draw.polygon(self.surface, self.color2, form1)
 		p.draw.polygon(self.surface, self.color2, form2)
+		h = self.height * self.hp // self.maxHp
+		hpForm = [(self.x-h, self.y+self.height+4), (self.x+h, self.y+self.height+4),
+		(self.x+h, self.y+self.height+3), (self.x-h, self.y+self.height+3)]
+		p.draw.polygon(self.surface, self.hpColor, hpForm)
