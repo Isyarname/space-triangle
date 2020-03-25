@@ -72,7 +72,7 @@ def start(theme, fsc):
 	return (sc, pl, Width, Height, stButton, pButton, eButton, tButton,
 	hsButton,fscButton, hsButtons, addPlButton, boss, pauseButton)
 
-def themeSel(themes, t, sc, pl):
+def themeSel(themes, t, sc):
 	t += 1
 	tButton.pressure = False
 	if t >= len(themes):
@@ -85,18 +85,16 @@ def themeSel(themes, t, sc, pl):
 		buttonColor1 = (165, 165, 165)
 		buttonColor2 = (140, 140, 140)
 		tableColor = (78, 78, 78)
-	ph = pl.highscore
-	pn = pl.name
-	pl = Player(sc, Width, Height, themes[t], fsc)
-	pl.highscore = ph
-	pl.name = pn
+	ph, pn = pl.highscore, pl.name
+	pl.__init__(sc, Width, Height, themes[t], fsc)
+	pl.highscore, pl.name = ph, pn
 	boss = Boss1(sc, themes[t], Width)
 	stButton.color = pButton.color = pauseButton.color = tButton.color = hsButton.color = fscButton.color = addPlButton.color = buttonColor1
 	eButton.color = buttonColor2
 	for i in hsButtons:
 		i.color = tableColor
 
-	return t, pl, boss
+	return t, boss
 
 def read(fileName):
 	with open(fileName, "r", encoding = "UTF-8") as file:
@@ -288,10 +286,7 @@ def events(hsTable):
 				if event.button == 1:
 					if (pos[0] >= i.x - i.w and pos[0] <= i.x + i.w and 
 						pos[1] >= i.y - i.h and pos[1] <= i.y + i.h):
-						if i.pressure:
-							i.pressure = False
-						else:
-							i.pressure = True
+						i.pressure = not i.pressure
 		elif event.type == p.QUIT:
 			quit(fileName)
 		elif event.type == p.KEYDOWN:
@@ -312,8 +307,14 @@ def events(hsTable):
 				pl.motion = "left"
 			elif event.key == p.K_RIGHT:
 				pl.motion = "right"
-			elif event.key == p.K_SPACE or event.key == p.K_e:
+			elif event.key == p.K_SPACE:
 				pl.shot = True
+			elif event.key == p.K_e:
+				pl.shot = not pl.shot
+			elif event.key == p.K_RETURN:
+				stButton.pressure = True
+			elif event.key == p.K_p and stButton.pressure:
+				pauseButton.pressure = not pauseButton.pressure
 			elif event.key == p.K_o:
 				pl.level = 2
 			elif event.key == p.K_l:
@@ -389,12 +390,11 @@ while True:
 			eButton.draw("конец", Width)
 			if eButton.pressure:
 				stButton.pressure = False
+				pauseButton.pressure = False
 				ph, pn = pl.highscore, pl.name
-				s = start(themes[t], fsc)
-				sc, pl, Width, Height, stButton, pButton = s[0], s[1], s[2], s[3], s[4], s[5]
-				eButton, tButton, hsButton, fscButton = s[6], s[7], s[8], s[9]
-				hsButtons, addPlButton, boss, pauseButton = s[10], s[11], s[12], s[13]
+				pl.__init__(sc, Width, Height, themes[t], fsc)
 				pl.highscore, pl.name = ph, pn
+				boss = Boss1(sc, themes[t], Width)
 				bossIndex = 0
 				bullets = []
 				enemies = []
@@ -412,8 +412,8 @@ while True:
 	else:
 		hsTable = menu(hsTable)
 		if tButton.pressure:
-			ts = themeSel(themes, t, sc, pl)
-			t, pl, boss = ts[0], ts[1], ts[2]
+			ts = themeSel(themes, t, sc)
+			t, boss = ts[0], ts[1]
 		elif fscButton.pressure:
 			fsc = not fsc
 			fscButton.pressure = False
