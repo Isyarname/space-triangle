@@ -20,6 +20,7 @@ sequins = []
 bonuses = []
 hsTable = False #открыта ли таблица рекордов
 bossIndex = 0
+bossA = False
 turn = 0
 gradation = "+" #изменение цвета фона
 shade = 0
@@ -27,7 +28,7 @@ themes = ["синий", "чб"]
 t = 0 #номер темы
 fsc = False #полный экран
 monitors = get_monitors()
-while monitors == []: #так надо
+while monitors == []: #так работает
 	monitors = get_monitors()
 
 keys = {p.K_a:"a", p.K_b:"b", p.K_c:"c", p.K_d: "d", p.K_e:"e", p.K_f:"f",
@@ -62,7 +63,7 @@ def start(theme, fsc):
 	tButton = Button(Width//2, Height*13//20, sc, Width//24, buttonColor1) #themes
 	hsButton = Button(Width//10, Height//18, sc, Width//50, buttonColor1) #highscore (рекорд)
 	fscButton = Button(Width//2, Height*17//20, sc, Width//40, buttonColor1)
-	addPlButton = Button(Width//10, Height//7, sc, Width//50, buttonColor1)
+	plButton = Button(Width//10, Height//7, sc, Width//50, buttonColor1)
 	boss = Boss1(sc, theme, Width)
 	pl = Player(sc, Width, Height, theme, fsc)
 	hsButtons = []
@@ -70,9 +71,9 @@ def start(theme, fsc):
 		hsButtons.append(Button(Width//10, Height//7 + (i * Height//16), sc, Width//50, tableColor)) #таблица рекордов
 
 	return (sc, pl, Width, Height, stButton, pButton, eButton, tButton,
-	hsButton,fscButton, hsButtons, addPlButton, boss, pauseButton)
+	hsButton,fscButton, hsButtons, plButton, pauseButton, boss)
 
-def themeSel(themes, t, sc):
+def themeChoice(themes, t, sc):
 	t += 1
 	tButton.pressure = False
 	if t >= len(themes):
@@ -85,11 +86,12 @@ def themeSel(themes, t, sc):
 		buttonColor1 = (165, 165, 165)
 		buttonColor2 = (140, 140, 140)
 		tableColor = (78, 78, 78)
+	boss = Boss1(sc, themes[t], Width)
 	ph, pn = pl.highscore, pl.name
 	pl.__init__(sc, Width, Height, themes[t], fsc)
 	pl.highscore, pl.name = ph, pn
-	boss = Boss1(sc, themes[t], Width)
-	stButton.color = pButton.color = pauseButton.color = tButton.color = hsButton.color = fscButton.color = addPlButton.color = buttonColor1
+	stButton.color = pButton.color = pauseButton.color = buttonColor1
+	tButton.color = hsButton.color = fscButton.color = plButton.color = buttonColor1
 	eButton.color = buttonColor2
 	for i in hsButtons:
 		i.color = tableColor
@@ -123,32 +125,46 @@ def tCollision(obj1, obj2):
 		return False
 
 def shooting(theme, move):
-	if move:
-		if pl.shot == True:
-			if pl.mode == 2:
-				bullets.append(Bullet(pl.x, pl.y, sc, (0,1), 10, theme, 1))
-			elif pl.mode == 5:
-				bullets.append(Bullet(pl.x, pl.y, sc, (-1, 1), 10, theme, 1))
-				bullets.append(Bullet(pl.x, pl.y, sc, (1,1), 10, theme, 1))
-			else:
-				if pl.recharge == 3:
-					if pl.mode == 0:
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme, 1))
-					elif pl.mode == 1:
-						bullets.append(Bullet(pl.x, pl.y, sc, -1, 10, theme, 1))
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme, 1))
-						bullets.append(Bullet(pl.x, pl.y, sc, 1, 10, theme, 1))
-					elif pl.mode == 3:
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 4, theme, 1))
-					elif pl.mode == 4:
-						bullets.append(Bullet(pl.x, pl.y, sc, -2, 10, theme, 1))
-						bullets.append(Bullet(pl.x, pl.y, sc, -1, 10, theme, 1))
-						bullets.append(Bullet(pl.x, pl.y, sc, 0, 10, theme, 1))
-						bullets.append(Bullet(pl.x, pl.y, sc, 1, 10, theme, 1))
-						bullets.append(Bullet(pl.x, pl.y, sc, 2, 10, theme, 1))
-					pl.recharge = 0
-				else:
-					pl.recharge += 1
+	for j, b in enumerate(bullets):
+		if b.type == 2:
+			if collision(pl, b):
+				pl.hp -= b.depth // 2
+				bullets.pop(j)
+		elif len(enemies) > 0:
+			for i, e in enumerate(enemies):
+				if collision(e, b):
+					e.hp -= b.depth
+					bullets.pop(j)
+		
+	if move and pl.shot == True:
+		y = pl.y - pl.depth
+		if pl.mode == 3: #часто в одну колонну
+			bullets.append(Bullet(pl.x, y, sc, 0, 10, theme, 1))
+		elif pl.mode == 6: #часто в 2 колонны
+			bullets.append(Bullet(pl.x, y, sc, -1, 10, theme, 1))
+			bullets.append(Bullet(pl.x, y, sc, 1, 10, theme, 1))
+		elif pl.mode == 7: #часто в 3 колонны
+			bullets.append(Bullet(pl.x, y, sc, -1, 10, theme, 1))
+			bullets.append(Bullet(pl.x, y, sc, 0, 10, theme, 1))
+			bullets.append(Bullet(pl.x, y, sc, 1, 10, theme, 1))
+		elif pl.recharge == 3:
+			if pl.mode == 1: #редко в оду колонну
+				bullets.append(Bullet(pl.x, y, sc, 0, 10, theme, 1))
+			elif pl.mode == 2: #редко в 3 колонны
+				bullets.append(Bullet(pl.x, y, sc, -1, 10, theme, 1))
+				bullets.append(Bullet(pl.x, y, sc, 0, 10, theme, 1))
+				bullets.append(Bullet(pl.x, y, sc, 1, 10, theme, 1))
+			elif pl.mode == 4: #редко в 1 колонну, но пули большие и медленые
+				bullets.append(Bullet(pl.x, y, sc, 0, 4, theme, 1))
+			elif pl.mode == 5: #редко в 5 колонн
+				bullets.append(Bullet(pl.x, y, sc, -2, 10, theme, 1))
+				bullets.append(Bullet(pl.x, y, sc, -1, 10, theme, 1))
+				bullets.append(Bullet(pl.x, y, sc, 0, 10, theme, 1))
+				bullets.append(Bullet(pl.x, y, sc, 1, 10, theme, 1))
+				bullets.append(Bullet(pl.x, y, sc, 2, 10, theme, 1))
+			pl.recharge = 0
+		else:
+			pl.recharge += 1
 
 	if len(bullets) > 0:
 		for index, bullet in enumerate(bullets):
@@ -157,13 +173,13 @@ def shooting(theme, move):
 			else:
 				  bullet.draw(move)
 
-def enemyMovement(theme, move):
+def enemyMovement(theme, move, bossIndex):
 	if len(enemies) > 0:
 		for i, e in enumerate(enemies):
-			for j, b in enumerate(bullets):
-				if b.m == 1 and collision(e, b):
+			'''for j, b in enumerate(bullets):
+				if b.type == 1 and collision(e, b):
 					e.hp -= b.depth
-					bullets.pop(j)
+					bullets.pop(j)'''
 			if collision(e, pl):								#player.hp
 				pl.hp -= e.depth * 2
 				enemies.pop(i)
@@ -172,47 +188,65 @@ def enemyMovement(theme, move):
 				enemies.pop(i)
 				explosionSound.play()
 				pl.points += e.depth // 8
-				if e.bonus == True:
-					bonuses.append(Bonus(sc, e.x, e.y, theme, pl.level, pl.points))
+				'''if pl.points > pl.highscore:
+					pl.highscore = pl.points'''
+				if e.bonus:
+					bonuses.append(Bonus(sc, e.x, e.y, theme, pl.level, pl.points, "random", bossIndex))
+				if bossIndex == 3 and e.y < Height // 2:
+					boss.hp -= e.depth * 2
 			elif e.y - e.depth > Height:
 				enemies.pop(i)
 				pl.hp -= e.depth * 2
 			else:
 				e.draw(move)
 
-def bossMovement(move, theme, bossIndex):
-	if boss.hp > 0 and bossIndex != 0:
-		if bossIndex == 2 and boss.y - boss.height <= Height:
-			for j, b in enumerate(bullets):
-				if b.m == 1:
-					if tCollision(boss, b):
-						boss.hp -= b.depth
-						bullets.pop(j)
-				elif collision(pl, b):
-					pl.hp -= b.depth // 2
-			boss.recharge += 1
-			if boss.recharge == 10:
-				t = r(1,2)
-				if t == 1:
-					vx = (pl.x - boss.x1) * 6 // (pl.y - boss.y2)
-					bullets.append(Bullet(boss.x1, boss.y2, sc, vx, -6, theme, 2))
-				elif t == 2:
-					vx = (pl.x - boss.x2) * 6 // (pl.y - boss.y2)
-					bullets.append(Bullet(boss.x2, boss.y2, sc, vx, -6, theme, 2))
-				boss.recharge = 0
+def bossMovement(move, theme, bossIndex, bossA):
+	if bossA == True:
+		if boss.hp > 0:
+			if move:
+				if bossIndex == 2:
+					for j, b in enumerate(bullets):
+						if b.type == 1 and tCollision(boss, b):
+							boss.hp -= b.depth
+							bullets.pop(j)
+					if tCollision(boss, pl):
+						pl.hp -= boss.hp
+					if boss.recharge == 10:
+						t = r(1,2)
+						if t == 1:
+							x = boss.x1
+						else:
+							x = boss.x2
+						vy = 4
+						vx = (pl.x - x) * vy // (pl.y - boss.y2)
+						bullets.append(Bullet(x, boss.y, sc, vx, vy, theme, 2))
+				elif bossIndex == 3: #Boss3.hp в enemyMovement()
+					if tCollision(boss, pl):
+						pl.hp -= boss.hp
+					if boss.recharge == 10:
+						vy = 4
+						vx = (pl.x - boss.x) * vy // (pl.y - boss.y)
+						bullets.append(Bullet(boss.x, boss.y + boss.d, sc, vx, vy, theme, 2))
+				elif bossIndex == 1:
+					if collision(boss, pl) or boss.y - boss.depth >= Height:
+						pl.hp -= boss.hp
+						boss.hp = 0
+						explosionSound.play()
+					for j, b in enumerate(bullets):
+						if b.type == 1 and collision(boss, b):
+							boss.hp -= b.depth
+							bullets.pop(j)
 			boss.draw(move)
-		elif bossIndex == 1 and boss.y - boss.depth <= Height:
-			for j, b in enumerate(bullets):
-				if b.m == 1:
-					if collision(boss, b):
-						boss.hp -= b.depth
-						bullets.pop(j)
-			if collision(boss, pl):
-				pl.hp -= boss.hp
-				explosionSound.play()
-			boss.draw(move)
+		else:
+			bonuses.append(Bonus(sc, boss.x, boss.y, theme, pl.level, pl.points, 1))
+			bonuses.append(Bonus(sc, boss.x+20, boss.y, theme, pl.level, pl.points, 2))
+			pl.points += 50
+			boss.deathTime = pl.time
+			bossA = False
 
-def play(turn, theme, move, bossIndex):
+	return bossA
+
+def play(turn, theme, move, bossIndex, bossA):
 	if len(bonuses) > 0:
 		for i, b in enumerate(bonuses):
 			if collision(b, pl):
@@ -220,26 +254,26 @@ def play(turn, theme, move, bossIndex):
 					pl.hp += 20
 					if pl.hp > pl.maxHp:
 						pl.hp = pl.maxHp
-				elif pl.level == pl.points//50:
+				else:
 					pl.level += 1
 				bonuses.pop(i)
 			else:
-				b.draw()
+				b.draw(move)
 
-	if turn > r(100,600) and move:
-		turn = 0
-		enemies.append(Enemy(sc, pl.points//25, theme, Width))
-
-	bossMovement(move, theme, bossIndex)
-	enemyMovement(theme, move)
 	if move:
 		turn += 1
+		if turn > r(100,600):
+			turn = 0
+			enemies.append(Enemy(sc, pl.points//50, theme, Width))
+
+	bossA = bossMovement(move, theme, bossIndex, bossA)
+	enemyMovement(theme, move, bossIndex)
 	shooting(theme, move)
 	pButton.draw(str(pl.points), Width)
 	pl.draw(move)
 	pauseButton.draw("||", Width)
 
-	return turn
+	return turn, bossA
 
 def menu(hsTable):
 	stButton.draw("играть", Width)
@@ -262,7 +296,7 @@ def menu(hsTable):
 				pl.name = data["players"][i]["name"]
 				pl.highscore = data["players"][i]["points"]
 	else:
-		addPlButton.draw(pl.name+" "+str(pl.highscore), Width)
+		plButton.draw(pl.name+" "+str(pl.highscore), Width)
 
 	return hsTable
 
@@ -280,7 +314,7 @@ def events(hsTable):
 					buttons = [stButton, tButton, fscButton, hsButton]
 					buttons.extend(hsButtons)
 				else:
-					buttons = [stButton, tButton, fscButton, hsButton, addPlButton]
+					buttons = [stButton, tButton, fscButton, hsButton, plButton]
 			for i in buttons:
 				pos = event.pos
 				if event.button == 1:
@@ -290,9 +324,9 @@ def events(hsTable):
 		elif event.type == p.QUIT:
 			quit(fileName)
 		elif event.type == p.KEYDOWN:
-			if not stButton.pressure and addPlButton.pressure:
+			if not stButton.pressure and plButton.pressure:
 				if event.key == p.K_BACKSPACE:
-					pl.name = pl.name[:len(pl.name)-1]
+					pl.name = pl.name[:-1]
 				elif event.key in keys:
 					if len(pl.name) < 12:
 						if pl.name == "введите имя":
@@ -303,10 +337,19 @@ def events(hsTable):
 					addPlButton.pressure = False
 			elif event.key == p.K_ESCAPE:
 				quit(fileName)
-			elif event.key == p.K_LEFT:
-				pl.motion = "left"
-			elif event.key == p.K_RIGHT:
-				pl.motion = "right"
+			elif event.key in [p.K_DOWN, p.K_UP, p.K_LEFT, p.K_RIGHT]:
+				pl.motion.append(event.key)
+				if event.key == p.K_DOWN:
+					key = p.K_UP
+				elif event.key == p.K_UP:
+					key = p.K_DOWN
+				elif event.key == p.K_LEFT:
+					key = p.K_RIGHT
+				elif event.key == p.K_RIGHT:
+					key = p.K_LEFT
+				for i, k in enumerate(pl.motion):
+					if key == k:
+						pl.motion.pop(i)
 			elif event.key == p.K_SPACE:
 				pl.shot = True
 			elif event.key == p.K_e:
@@ -318,21 +361,23 @@ def events(hsTable):
 			elif event.key == p.K_o:
 				pl.level = 2
 			elif event.key == p.K_l:
-				pl.time = 6999
-			elif event.key == p.K_m:
+				pl.time = 3500 * 1 - 1
+			elif event.key == p.K_m and pl.level > 1:
 				pl.mode += 1
-				if pl.level == 2:
-					if pl.mode > 3:
-						pl.mode = 1
-				elif pl.level == 3:
-					print(pl.mode)
-					if pl.mode > 5:
-						pl.mode = 4
+				print("mode =", pl.mode)
+				print("level =", pl.level)
+				if (pl.level == 2 and pl.mode > 4 or
+				pl.level == 3 and pl.mode > 6 or
+				pl.level == 4 and pl.mode > 7):
+					pl.mode = pl.level
+					print("pl.mode = pl.level =", pl.level)
 		elif event.type == p.KEYUP:
-			if event.key in [p.K_LEFT, p.K_RIGHT]:
-				pl.motion = "stop"
 			if event.key == p.K_SPACE:
 				pl.shot = False
+			else:
+				for i, k in enumerate(pl.motion):
+					if event.key == k:
+						pl.motion.pop(i)
 
 def background(gradation, shade, theme, move):
 	if r(0,15) == 1:
@@ -365,7 +410,7 @@ def quit(fileName):
 			if pl.highscore > i["points"]:
 				i["points"] = pl.highscore
 			pm = True
-	if pm == False and pl.name != "введите имя":
+	if pm == False and pl.name != ("введите имя" or ""):
 		data["players"].append({"name": pl.name, "points": pl.highscore})
 	if pl.highscore > data["highscore"]:
 		data["highscore"] = pl.highscore
@@ -377,7 +422,7 @@ data = read(fileName)
 s = start(themes[t], fsc)
 sc, pl, Width, Height, stButton, pButton = s[0], s[1], s[2], s[3], s[4], s[5]
 eButton, tButton, hsButton, fscButton = s[6], s[7], s[8], s[9]
-hsButtons, addPlButton, boss, pauseButton = s[10], s[11], s[12], s[13]
+hsButtons, plButton, pauseButton, boss = s[10], s[11], s[12], s[13]
 while True:
 	b = background(gradation, shade, themes[t], not pauseButton.pressure)
 	gradation = b[0]
@@ -389,8 +434,11 @@ while True:
 		if pl.hp <= 0:
 			eButton.draw("конец", Width)
 			if eButton.pressure:
+				eButton.pressure = False
 				stButton.pressure = False
 				pauseButton.pressure = False
+				if pl.points > pl.highscore:
+					pl.highscore = pl.points
 				ph, pn = pl.highscore, pl.name
 				pl.__init__(sc, Width, Height, themes[t], fsc)
 				pl.highscore, pl.name = ph, pn
@@ -401,19 +449,23 @@ while True:
 		else:
 			if not pauseButton.pressure:
 				pl.time += 1
-			if pl.time % 3500 == 0:
-				bossIndex = pl.time // 3500
+			if (bossA == False and (pl.time - boss.deathTime) % 3500 == 0 and bossIndex < 3):
+				bossIndex += (pl.time - boss.deathTime) // 3500
+				print("bossIndex=", bossIndex)
+				bossA = True
 				if bossIndex == 2:
 					print("boss2")
 					boss = Boss2(sc, themes[t], Width)
-			turn = play(turn, themes[t], not pauseButton.pressure, bossIndex)
-			if pl.points > pl.highscore:
-				pl.highscore = pl.points
+				elif bossIndex == 3:
+					print("boss 3")
+					boss = Boss3(sc, themes[t], Width)
+			pla = play(turn, themes[t], not pauseButton.pressure, bossIndex, bossA)
+			turn, bossA = pla[0], pla[1]
 	else:
 		hsTable = menu(hsTable)
 		if tButton.pressure:
-			ts = themeSel(themes, t, sc)
-			t, boss = ts[0], ts[1]
+			tc = themeChoice(themes, t, sc)
+			t, boss = tc[0], tc[1]
 		elif fscButton.pressure:
 			fsc = not fsc
 			fscButton.pressure = False
@@ -421,7 +473,7 @@ while True:
 			s = start(themes[t], fsc)
 			sc, pl, Width, Height, stButton, pButton = s[0], s[1], s[2], s[3], s[4], s[5]
 			eButton, tButton, hsButton, fscButton = s[6], s[7], s[8], s[9]
-			hsButtons, addPlButton, boss, pauseButton = s[10], s[11], s[12], s[13]
+			hsButtons, plButton, pauseButton, boss = s[10], s[11], s[12], s[13]
 			pl.highscore, pl.name = ph, pn
 
 

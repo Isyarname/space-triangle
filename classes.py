@@ -39,10 +39,9 @@ class Enemy:
 			self.hpColor = (130, 130, 130)
 		self.v = r(4 - self.depth//8 + diff//3, 4 - self.depth//8 + diff//2)
 		self.surface = surf
+		self.bonus = False
 		if self.depth == 25 and r(0,1) == 1:
 			self.bonus = True
-		else:
-			self.bonus = False
 		self.depth = self.depth * Width // 1200
 		self.y = -self.depth
 		self.x = r(self.depth * 2, Width - self.depth * 2)
@@ -65,24 +64,27 @@ class Enemy:
 
 
 class Bullet:
-	def __init__(self, x, y, surf, direct, v, theme, m):
-		self.m = m
+	def __init__(self, x, y, surf, vx, vy, theme, type):
+		self.type = type
 		self.x = x
 		self.y = y
 		if theme == "синий":
 			self.color = (80,120,200)
 		elif theme == "чб":
 			self.color = (133, 133, 133)
-		self.v = v
+		self.vy = vy
 		self.surface = surf
-		self.depth = (12 - self.v)
+		self.depth = (12 - self.vy)
 		self.lenght = 3
-		self.direction = direct
+		self.vx = vx
 		
 	def draw(self, move):
 		if move:
-			self.y -= self.v
-			self.x += self.direction
+			if self.type == 1:
+				self.y -= self.vy
+			else:
+				self.y += self.vy
+			self.x += self.vx
 		form = [(self.x-2,self.y+self.lenght),(self.x+2,self.y+self.lenght),
 		(self.x+2,self.y-self.lenght),(self.x-2,self.y-self.lenght)]
 		p.draw.polygon(self.surface, self.color, form)
@@ -106,26 +108,37 @@ class Player:
 			self.color = (203, 203, 203)
 			self.hpColor = (130, 130, 130)
 		self.v = 6 * Width // 1200
-		self.motion = "stop"
+		self.motion = []
 		self.shot = False
 		self.surface = surf
 		self.points = self.highscore = 0
 		self.hp = self.maxHp = 600
 		self.level = 1
-		self.mode = 0
+		self.mode = 1
 		self.recharge = 0
 
-	def left(self):
-		self.x -= self.v + self.points // 30
+	def left(self, v):
+		self.x -= v
 
-	def right(self):
-		self.x += self.v + self.points // 30
+	def right(self, v):
+		self.x += v
+
+	def up(self, v):
+		self.y -= v
+
+	def down(self, v):
+		self.y += v
 
 	def movement(self):
-		if self.motion == "left":
-			self.left()
-		elif self.motion == "right":
-			self.right()
+		v = self.v + self.points // 30
+		if p.K_LEFT in self.motion:
+			self.left(v)
+		elif p.K_RIGHT in self.motion:
+			self.right(v)
+		if p.K_UP in self.motion and self.y > 0:
+			self.up(v)
+		elif p.K_DOWN in self.motion and self.y < self.scHeight:
+			self.down(v)
 		if self.x > self.scWidth:
 			self.x = 0
 		elif self.x < 0:
@@ -170,22 +183,29 @@ class Button:
 
 
 class Bonus:
-	def __init__(self, surf, x, y, theme, level, points):
+	def __init__(self, surf, x, y, theme, level, points, type="random", bossIndex=1):
 		self.surface = surf
 		self.x = x
 		self.y = y
 		self.v = 2
 		self.depth = 10
-		if (r(0,1) == 1) and (level != points // 50):
-			self.type = 2
-			self.color = (140, 140, 140)
+		self.type = type
+		if self.type == "random":
+			if r(0,1) == 1 and level - 1 < bossIndex and level < 3:
+				self.type = 2	
+			else:
+				self.type = 1
+		if self.type == 2:
 			self.textColor = textColor
 			size = 20
 			self.w = size // 3 + 3
 			self.h = size * 10 // 19 + 5
 			self.f = p.font.Font(font, size)
-		else:
-			self.type = 1
+			if theme == "чб":
+				self.color = (99, 99, 99)
+			elif theme == "синий":
+				self.color = (0, 85, 213)
+		elif self.type == 1:
 			if theme == "чб":
 				self.color1 = (138, 138, 138)
 				self.color2 = (76, 76, 76)
@@ -193,14 +213,15 @@ class Bonus:
 				self.color1 = ORANGE
 				self.color2 = RED
 
-	def draw(self):
-		self.y += self.v
+	def draw(self, move):
+		if move:
+			self.y += self.v
 		d = self.depth // 2
 		if self.type ==  1:
-			form1 = [(self.x-self.depth, self.y+self.depth),
+			form1 = [(self.x-self.depth, self.y+self.depth), #квадрат
 			(self.x+self.depth, self.y+self.depth), (self.x+self.depth, self.y-self.depth),
 			(self.x-self.depth, self.y-self.depth)]
-			form2 = [(self.x-d, self.y+self.depth), (self.x+d, self.y+self.depth),
+			form2 = [(self.x-d, self.y+self.depth), (self.x+d, self.y+self.depth), #крест
 			(self.x+d, self.y+d), (self.x+self.depth, self.y+d),
 			(self.x+self.depth, self.y-d),(self.x+d, self.y-d),
 			(self.x+d, self.y-self.depth), (self.x-d, self.y-self.depth),
@@ -208,7 +229,7 @@ class Bonus:
 			(self.x-self.depth, self.y+d), (self.x-d, self.y+d)]
 			p.draw.polygon(self.surface, self.color1, form1)
 			p.draw.polygon(self.surface, self.color2, form2)
-		else:
+		elif self.type == 2:
 			text = self.f.render("m", 1, self.textColor)
 			place = text.get_rect(center=(self.x,self.y))
 			form = [(self.x - self.w, self.y - self.h), (self.x + self.w, self.y - self.h),
@@ -219,6 +240,7 @@ class Bonus:
 
 class Boss1:
 	def __init__(self, surf, theme, Width):
+		self.deathTime = 0
 		self.color2 = (0,0,0)
 		self.color1 = (255,255,255)
 		self.v = 1
@@ -251,6 +273,7 @@ class Boss1:
 
 class Boss2:
 	def __init__(self, surf, theme, Width):
+		self.deathTime = 0
 		self.v = 2
 		self.surface = surf
 		self.hp = self.maxHp = 1000
@@ -273,6 +296,9 @@ class Boss2:
 		self.y2 = self.y + self.d
 
 	def draw(self, move):
+		self.recharge += 1
+		if self.recharge > 10:
+			self.recharge = 0
 		if move and self.y <= self.height:
 			self.y += self.v
 		self.y2 = self.y + self.d
@@ -286,3 +312,58 @@ class Boss2:
 		hpForm = [(self.x-h, self.y+self.height+4), (self.x+h, self.y+self.height+4),
 		(self.x+h, self.y+self.height+3), (self.x-h, self.y+self.height+3)]
 		p.draw.polygon(self.surface, self.hpColor, hpForm)
+
+
+class Boss3:
+	def __init__(self, surf, theme, Width):
+		self.deathTime = 0
+		self.v = 2
+		self.surface = surf
+		self.hp = self.maxHp = 1000
+		self.width = Width // 7
+		self.height = self.width // 2
+		self.y = -self.height
+		self.x = Width // 2
+		self.recharge = 0
+		self.d = self.width // 4
+		if theme == "синий":
+			self.hpColor = RED
+			self.color = (10,80,230)
+			self.color2 = (245,73,102)
+		elif theme == "чб":
+			self.hpColor = (130, 130, 130)
+			self.color = (110,110,110)
+			self.color2 = (140,140,140)
+
+	def draw(self, move):
+		self.recharge += 1
+		if self.recharge > 10:
+			self.recharge = 0
+		if move and self.y <= self.height:
+			self.y += self.v
+		h = self.height * self.hp // self.maxHp
+		form = [(self.x-self.width, self.y-self.height), (self.x+self.width, self.y-self.height), (self.x, self.y+self.height)]
+		form2 = [(self.x-self.d, self.y), (self.x+self.d, self.y), (self.x, self.y+self.d)]
+		hpForm = [(self.x-h, self.y+self.height+4), (self.x+h, self.y+self.height+4),
+		(self.x+h, self.y+self.height+3), (self.x-h, self.y+self.height+3)]
+		p.draw.polygon(self.surface, self.color, form)
+		p.draw.polygon(self.surface, self.color2, form2)
+		p.draw.polygon(self.surface, self.hpColor, hpForm)
+
+''' я пытался
+class Boss2(Boss3):
+	def __init__(self, surf, theme, Width):
+		Boss3.__init__(self, surf, theme, Width)
+		self.recharge = 0
+		self.d = self.width // 4
+		self.x1 = self.x - self.d
+		self.x2 = self.x + self.d
+		self.y2 = self.y + self.d
+
+	def draw(self, move):
+		self.y2 = self.y + self.d
+		form1 = [(self.x1-self.d, self.y2-self.d), (self.x1+self.d, self.y2-self.d), (self.x1, self.y2)]
+		form2 = [(self.x2-self.d, self.y2-self.d), (self.x2+self.d, self.y2-self.d), (self.x2, self.y2)]
+		p.draw.polygon(self.surface, self.color2, form1)
+		p.draw.polygon(self.surface, self.color2, form2)
+'''
