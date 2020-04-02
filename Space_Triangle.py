@@ -1,5 +1,6 @@
 import pygame as p
 import sys, json
+from math import *
 from random import randint as r
 from classes import *
 from screeninfo import get_monitors
@@ -115,7 +116,7 @@ def collision(object1, object2): #enemy, bullet/player
 	else:
 		return False
 
-def tCollision(obj1, obj2):
+def tCollision(obj1, obj2): #столкновение с треугольным боссом
 	if (obj1.x - obj1.width <= obj2.x <= obj1.x and 
 		(obj1.y + obj1.height - obj2.y) * (obj1.width / 2) / obj1.height > obj1.x - obj2.x or 
 		obj1.x <= obj2.x <= obj1.x + obj1.width and 
@@ -124,11 +125,31 @@ def tCollision(obj1, obj2):
 	else:
 		return False
 
+def ai(x, y, a, b, vmax):
+	dx = x - a
+	dy = y - b
+	ra = sqrt(dx * dx + dy * dy)
+	n = 99
+	m = 99
+	vxb = 0
+	vyb = 0
+	for v in range(2,vmax):
+		vx = dx * v // ra
+		vy = dy * v // ra
+		s = sqrt(vx*vx + vy*vy)
+		k = ra // s
+		if abs(vy - dy*v/ra) + abs(vx - dx*v/ra) < n:
+			n = abs(vy - dy*v/ra) + abs(dx*v/ra - vx)
+			vxb = vx
+			vyb = vy
+
+	return vxb, vyb
+
 def shooting(theme, move):
 	for j, b in enumerate(bullets):
 		if b.type == 2:
 			if collision(pl, b):
-				pl.hp -= b.depth // 2
+				pl.hp -= b.depth
 				bullets.pop(j)
 		elif len(enemies) > 0:
 			for i, e in enumerate(enemies):
@@ -212,21 +233,23 @@ def bossMovement(move, theme, bossIndex, bossA):
 					if tCollision(boss, pl):
 						pl.hp -= boss.hp
 					if boss.recharge == 10:
-						t = r(1,2)
-						if t == 1:
-							x = boss.x1
+						if r(1,2) == 1:
+							a = boss.x1
 						else:
-							x = boss.x2
-						vy = 4
-						vx = (pl.x - x) * vy // (pl.y - boss.y2)
-						bullets.append(Bullet(x, boss.y, sc, vx, vy, theme, 2))
+							a = boss.x2
+						vmax = 8
+						vai = ai(pl.x, pl.y, a, boss.y2, vmax)
+						vx, vy = vai[0], vai[1]
+						bullets.append(Bullet(a, boss.y2, sc, vx, vy, theme, 2))
 				elif bossIndex == 3: #Boss3.hp в enemyMovement()
 					if tCollision(boss, pl):
 						pl.hp -= boss.hp
 					if boss.recharge == 10:
-						vy = 4
-						vx = (pl.x - boss.x) * vy // (pl.y - boss.y)
-						bullets.append(Bullet(boss.x, boss.y + boss.d, sc, vx, vy, theme, 2))
+						vmax = 8
+						b = boss.y + boss.d
+						vai = ai(pl.x, pl.y, boss.x, b, vmax)
+						vx, vy = vai[0], vai[1]
+						bullets.append(Bullet(boss.x, b, sc, vx, vy, theme, 2))
 				elif bossIndex == 1:
 					if collision(boss, pl) or boss.y - boss.depth >= Height:
 						pl.hp -= boss.hp
@@ -234,6 +257,7 @@ def bossMovement(move, theme, bossIndex, bossA):
 						explosionSound.play()
 					for j, b in enumerate(bullets):
 						if b.type == 1 and collision(boss, b):
+							print("collision")
 							boss.hp -= b.depth
 							bullets.pop(j)
 			boss.draw(move)
@@ -361,7 +385,7 @@ def events(hsTable):
 			elif event.key == p.K_o:
 				pl.level = 2
 			elif event.key == p.K_l:
-				pl.time = 3500 * 1 - 1
+				pl.time = 3500 * 2 - 1
 			elif event.key == p.K_m and pl.level > 1:
 				pl.mode += 1
 				print("mode =", pl.mode)
@@ -437,6 +461,7 @@ while True:
 				eButton.pressure = False
 				stButton.pressure = False
 				pauseButton.pressure = False
+				bossA = False
 				if pl.points > pl.highscore:
 					pl.highscore = pl.points
 				ph, pn = pl.highscore, pl.name
@@ -478,7 +503,6 @@ while True:
 
 
 	#print(len(enemies) + len(sequins) + len(bullets) + 2)
-	
 			
 
 	clock.tick(60)

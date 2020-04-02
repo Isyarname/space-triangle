@@ -96,7 +96,7 @@ class Player:
 		self.scWidth = Width
 		self.time = 0
 		self.scHeight = Height
-		self.depth = Width // 120
+		self.depth = Width // 110
 		self.x = self.scWidth // 2
 		self.y = self.scHeight - self.depth * 2
 		if fsc:
@@ -112,7 +112,7 @@ class Player:
 		self.shot = False
 		self.surface = surf
 		self.points = self.highscore = 0
-		self.hp = self.maxHp = 600
+		self.hp = self.maxHp = 600 * 99
 		self.level = 1
 		self.mode = 1
 		self.recharge = 0
