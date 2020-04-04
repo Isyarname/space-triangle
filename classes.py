@@ -112,7 +112,7 @@ class Player:
 		self.shot = False
 		self.surface = surf
 		self.points = self.highscore = 0
-		self.hp = self.maxHp = 600 * 99
+		self.hp = self.maxHp = 600
 		self.level = 1
 		self.mode = 1
 		self.recharge = 0
