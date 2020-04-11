@@ -125,25 +125,17 @@ def tCollision(obj1, obj2): #столкновение с треугольным 
 	else:
 		return False
 
-def ai(x, y, a, b, vmax):
+def ai(x, y, a, b, v):
 	dx = x - a
 	dy = y - b
 	ra = sqrt(dx * dx + dy * dy)
 	n = 99
-	m = 99
 	vxb = 0
 	vyb = 0
-	for v in range(2,vmax):
-		vx = dx * v // ra
-		vy = dy * v // ra
-		s = sqrt(vx*vx + vy*vy)
-		k = ra // s
-		if abs(vy - dy*v/ra) + abs(vx - dx*v/ra) < n:
-			n = abs(vy - dy*v/ra) + abs(dx*v/ra - vx)
-			vxb = vx
-			vyb = vy
+	vx = dx * v / ra
+	vy = dy * v / ra
 
-	return vxb, vyb
+	return vx, vy
 
 def shooting(theme, move):
 	for j, b in enumerate(bullets):
@@ -237,7 +229,7 @@ def bossMovement(move, theme, bossIndex, bossA):
 							a = boss.x1
 						else:
 							a = boss.x2
-						vmax = 8
+						vmax = 6
 						vai = ai(pl.x, pl.y, a, boss.y2, vmax)
 						vx, vy = vai[0], vai[1]
 						bullets.append(Bullet(a, boss.y2, sc, vx, vy, theme, 2))
@@ -245,7 +237,7 @@ def bossMovement(move, theme, bossIndex, bossA):
 					if tCollision(boss, pl):
 						pl.hp -= boss.hp
 					if boss.recharge == 10:
-						vmax = 8
+						vmax = 6
 						b = boss.y + boss.d
 						vai = ai(pl.x, pl.y, boss.x, b, vmax)
 						vx, vy = vai[0], vai[1]

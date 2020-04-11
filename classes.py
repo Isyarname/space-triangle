@@ -85,8 +85,10 @@ class Bullet:
 			else:
 				self.y += self.vy
 			self.x += self.vx
-		form = [(self.x-2,self.y+self.lenght),(self.x+2,self.y+self.lenght),
-		(self.x+2,self.y-self.lenght),(self.x-2,self.y-self.lenght)]
+		x = round(self.x)
+		y = round(self.y)
+		form = [(x-2, y+self.lenght),(x+2, y+self.lenght),
+		(x+2, y-self.lenght),(x-2, y-self.lenght)]
 		p.draw.polygon(self.surface, self.color, form)
 
 
